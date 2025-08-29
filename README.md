@@ -16,7 +16,7 @@ These are slightly changed versions from slackbuilds.org, so credits go to Heinz
 
 - You should either have XLibre with `IgnoreABI` and `Module` support in `OutputClass` and `TimerForce()` function reexported (get it at https://github.com/ONykyf/X11Libre-SlackBuild until these changes are merged into a stable version), or (in particular, for X.Org) put `IgnoreABI` option in `ServerFlags` (read `10-nvidia.conf` for details) and change the default nvidia graphic modules path from `/usr/lib??/nvidia/xorg/` to `/usr/lib??/xorg/modules/` (but You will not be able to use proprietary and open drivers simultaneously on a multiseat system)
 
-- parameters `nvidia-drm.modeset=1` and `modules_blacklist=nouveau` must be passed to kernel through GRUB, LILO, or whatever you use to boot Linux
+- parameters `nvidia-drm.modeset=1` and `module_blacklist=nouveau` must be passed to kernel through GRUB, LILO, or whatever you use to boot Linux
 
 - instead of the latter parameter, the `nouveau` kernel driver can be blacklisted by adding `/etc/modprobe.d/BLACKLIST-nouveau.conf` to your system
 

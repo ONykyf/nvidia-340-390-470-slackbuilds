@@ -1,4 +1,4 @@
-# nvidia390 and nvidia470 slackbuild for XLibre
+# nvidia390 and nvidia470 slackbuilds for XLibre
 
 Slackbuilds for proprietary nVidia kernel modules, X driver, and utilities, versions 390 (for Fermi cards) and 470 (for Kepler cards)
 

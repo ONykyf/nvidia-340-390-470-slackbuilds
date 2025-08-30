@@ -65,7 +65,7 @@ Clearly `initrd-6.14.0-rc3-nvidia.img` contains `nvidia,nvidia_drm,nvidia_uvm,nv
 
 There is a warning about "tainted kernel" in `dmesg` output.
 
-When a framebuffer for the second (integrated) intel card starts to initialize after nvidia gets initialized, the text console gets black and returns only before X is started. This pause is long (ca 30 seconds) on a box with RTL8211E Gigabit Ethernet adapter, probably because of entropy starvation when `r8169` is started and is not related to graphics. 
+When a framebuffer for the second (integrated) intel card starts to initialize after nvidia gets initialized, the text console gets black and returns only before X is started. This pause is long (ca 30 seconds) on a box with an RTL8211E Gigabit Ethernet adapter, probably because of entropy starvation when `r8169` is started, and is not related to graphics. 
 
 When Xserver is started, `nvidia-drm` complains about failure to grab drm device ownership, which is a long-term issue for NVidia:
 ```

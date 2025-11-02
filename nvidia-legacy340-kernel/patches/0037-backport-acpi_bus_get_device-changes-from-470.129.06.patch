@@ -1,0 +1,110 @@
+From 1251d4a23848ff46407275e1b603aa33bdbabb3d Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Mon, 20 Jun 2022 11:15:34 +0200
+Subject: [PATCH] backport acpi_bus_get_device changes from 470.129.06
+
+---
+ Makefile    |  1 +
+ conftest.sh | 16 ++++++++++++++++
+ nv-acpi.c   | 11 +++++++++++
+ 3 files changed, 28 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 2963b91..7ce41f8 100644
+--- a/Makefile
++++ b/Makefile
+@@ -166,6 +166,7 @@ COMPILE_TESTS = \
+ 	drm_prime_pages_to_sg_has_drm_device_arg \
+ 	drm_driver_has_gem_prime_callbacks \
+ 	drm_device_has_pdev \
++	acpi_bus_get_device \
+ 
+ #
+ # CFLAGS dependent on the type of builds (e.g. single/muliple module, debug)
+diff --git a/conftest.sh b/conftest.sh
+index bacb966..92ba366 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2541,6 +2541,22 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DEVICE_HAS_AGP" "" "types"
+         ;;
+ 
++        acpi_bus_get_device)
++            #
++            # Determine if the acpi_bus_get_device() function is present
++            #
++            # acpi_bus_get_device() was removed by commit ac2a3feefad5
++            # ("ACPI: bus: Eliminate acpi_bus_get_device()") in
++            # v5.18-rc2 (2022-04-05).
++            #
++            CODE="
++            #include <linux/acpi.h>
++            int conftest_acpi_bus_get_device(void) {
++                return acpi_bus_get_device();
++            }"
++            compile_check_conftest "$CODE" "NV_ACPI_BUS_GET_DEVICE_PRESENT" "" "functions"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+diff --git a/nv-acpi.c b/nv-acpi.c
+index ad7497b..d87e3b6 100644
+--- a/nv-acpi.c
++++ b/nv-acpi.c
+@@ -556,9 +556,11 @@ static void nv_uninstall_notifier(struct acpi_device *device, acpi_notify_handle
+ 
+ void NV_API_CALL nv_acpi_methods_init(NvU32 *handlesPresent)
+ {
++#if defined(NV_ACPI_BUS_GET_DEVICE_PRESENT)
+     struct acpi_device *device = NULL;
+     RM_STATUS rmStatus;
+     int retVal = -1;
++#endif
+ 
+ 
+     if (!handlesPresent) // Caller passed us invalid pointer.
+@@ -570,6 +572,7 @@ void NV_API_CALL nv_acpi_methods_init(NvU32 *handlesPresent)
+     NV_ACPI_WALK_NAMESPACE(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+                         ACPI_UINT32_MAX, nv_acpi_find_methods, NULL, NULL);
+ 
++#if defined(NV_ACPI_BUS_GET_DEVICE_PRESENT)
+     if (nvif_handle)
+     {
+         *handlesPresent = NV_ACPI_NVIF_HANDLE_PRESENT;
+@@ -596,6 +599,7 @@ void NV_API_CALL nv_acpi_methods_init(NvU32 *handlesPresent)
+ 
+         } while (0);
+     }
++#endif
+ 
+     if (wmmx_handle)
+         *handlesPresent = *handlesPresent | NV_ACPI_WMMX_HANDLE_PRESENT;
+@@ -652,9 +656,12 @@ void NV_API_CALL nv_acpi_methods_uninit(void)
+     if (nvif_parent_gpu_handle == NULL) 
+         return;
+ 
++#if defined(NV_ACPI_BUS_GET_DEVICE_PRESENT)
+     acpi_bus_get_device(nvif_parent_gpu_handle, &device);
+ 
+     nv_uninstall_notifier(device, nv_acpi_event);
++#endif
++
+     nvif_parent_gpu_handle = NULL;
+ 
+     return;
+@@ -1212,7 +1219,11 @@ RM_STATUS NV_API_CALL nv_acpi_ddc_method(
+     if (!dev_handle)
+         return RM_ERR_INVALID_ARGUMENT;
+ 
++#if defined(NV_ACPI_BUS_GET_DEVICE_PRESENT)
+     status = acpi_bus_get_device(dev_handle, &device);
++#else
++    return RM_ERR_NOT_SUPPORTED;
++#endif
+ 
+     if (ACPI_FAILURE(status) || !device)
+         return RM_ERR_INVALID_ARGUMENT;
+-- 
+2.20.1
+

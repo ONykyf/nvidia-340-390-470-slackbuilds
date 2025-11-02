@@ -1,0 +1,15 @@
+From: Osvaldo Costa <osvaldogcosta90@gmail.com>
+Description: add support for Linux 5.5
+Origin: vendor, https://aur.archlinux.org/cgit/aur.git/plain/03-unfuck-for-5.5.x.patch?h=nvidia-340xx
+Bug-Debian: https://bugs.debian.org/956034
+
+--- a/uvm/Makefile
++++ b/uvm/Makefile
+@@ -206,6 +206,7 @@ ccflags-y += $(EXTRA_CFLAGS)
+ 
+ RM_MODULE_SYMVERS:= $(RM_OUT_DIR)/Module.symvers
+ UVM_MODULE_SYMVERS:= $(obj)/Module.symvers
++KBUILD_EXTRA_SYMBOLS:= $(UVM_MODULE_SYMVERS)
+ 
+ module $(MODULE_NAME).ko: $(UVM_MODULE_SYMVERS) debug_diagnostics_printing
+ 

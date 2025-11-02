@@ -1,0 +1,192 @@
+From 9f446b8fa46f33b3a825dd011b0fe03f3f31253a Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Thu, 19 Jun 2025 10:20:07 +0200
+Subject: [PATCH] backport nv_vma_start_write changes from 570.169
+
+---
+ nv-linux.h             | 29 +++++++++++++++++
+ nv-mmap.c              | 72 ++++++++++++++++++++++++++++++++++++++++++
+ uvm/nvidia_uvm_linux.h | 29 +++++++++++++++--
+ 3 files changed, 128 insertions(+), 2 deletions(-)
+
+diff --git a/nv-linux.h b/nv-linux.h
+index fd17b7bf..6f9de872 100644
+--- a/nv-linux.h
++++ b/nv-linux.h
+@@ -2251,15 +2251,44 @@ static inline NvU64 nv_node_end_pfn(int nid)
+     #endif // NV_GET_USER_PAGES_HAS_ARGS_TSK_WRITE_FORCE_VMAS
+ #endif // NV_GET_USER_PAGES_REMOTE_PRESENT
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
++#define NV_IS_EXPORT_SYMBOL_GPL___vma_start_write 1
++#else
++#define NV_IS_EXPORT_SYMBOL_GPL___vma_start_write 0
++#endif
++
++#if NV_IS_EXPORT_SYMBOL_GPL___vma_start_write
++#define NV_CAN_CALL_VMA_START_WRITE 0
++#else // NV_IS_EXPORT_SYMBOL_GPL___vma_start_write
++#define NV_CAN_CALL_VMA_START_WRITE 1
++#endif
++
++#if !NV_CAN_CALL_VMA_START_WRITE
++/*
++ * Commit 45ad9f5290dc updated vma_start_write() to call __vma_start_write().
++ */
++void nv_vma_start_write(struct vm_area_struct *);
++#endif
++
+ #if defined(NV_VM_AREA_STRUCT_HAS_CONST_VM_FLAGS)
+ static inline void nv_vm_flags_set(struct vm_area_struct *vma, vm_flags_t flags)
+ {
++#if !NV_CAN_CALL_VMA_START_WRITE
++    nv_vma_start_write(vma);
++    ACCESS_PRIVATE(vma, __vm_flags) |= flags;
++#else
+     vm_flags_set(vma, flags);
++#endif
+ }
+ 
+ static inline void nv_vm_flags_clear(struct vm_area_struct *vma, vm_flags_t flags)
+ {
++#if !NV_CAN_CALL_VMA_START_WRITE
++    nv_vma_start_write(vma);
++    ACCESS_PRIVATE(vma, __vm_flags) &= ~flags;
++#else
+     vm_flags_clear(vma, flags);
++#endif
+ }
+ #else
+ static inline void nv_vm_flags_set(struct vm_area_struct *vma, unsigned long flags)
+diff --git a/nv-mmap.c b/nv-mmap.c
+index 82ebaa2b..867dc770 100644
+--- a/nv-mmap.c
++++ b/nv-mmap.c
+@@ -390,3 +390,75 @@ done:
+     up(&nvfp->fops_sp_lock[NV_FOPS_STACK_INDEX_MMAP]);
+     return status;
+ }
++
++#if !NV_CAN_CALL_VMA_START_WRITE
++static NvBool nv_vma_enter_locked(struct vm_area_struct *vma, NvBool detaching)
++{
++    NvU32 tgt_refcnt = VMA_LOCK_OFFSET;
++    NvBool interrupted = NV_FALSE;
++    if (!detaching)
++    {
++        tgt_refcnt++;
++    }
++    if (!refcount_add_not_zero(VMA_LOCK_OFFSET, &vma->vm_refcnt))
++    {
++        return NV_FALSE;
++    }
++
++    rwsem_acquire(&vma->vmlock_dep_map, 0, 0, _RET_IP_);
++    prepare_to_rcuwait(&vma->vm_mm->vma_writer_wait);
++
++    for (;;)
++    {
++        set_current_state(TASK_UNINTERRUPTIBLE);
++        if (refcount_read(&vma->vm_refcnt) == tgt_refcnt)
++            break;
++
++        if (signal_pending_state(TASK_UNINTERRUPTIBLE, current))
++        {
++            interrupted = NV_TRUE;
++            break;
++        }
++
++        schedule();
++    }
++
++    // This is an open-coded version of finish_rcuwait().
++    rcu_assign_pointer(vma->vm_mm->vma_writer_wait.task, NULL);
++    __set_current_state(TASK_RUNNING);
++
++    if (interrupted)
++    {
++        // Clean up on error: release refcount and dep_map
++        refcount_sub_and_test(VMA_LOCK_OFFSET, &vma->vm_refcnt);
++        rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
++        return NV_FALSE;
++    }
++
++    lock_acquired(&vma->vmlock_dep_map, _RET_IP_);
++    return NV_TRUE;
++}
++
++/*
++ * Helper function to handle VMA locking and refcount management.
++ */
++void nv_vma_start_write(struct vm_area_struct *vma)
++{
++    NvU32 mm_lock_seq;
++    NvBool locked;
++    if (__is_vma_write_locked(vma, &mm_lock_seq))
++        return;
++
++    locked = nv_vma_enter_locked(vma, NV_FALSE);
++
++    WRITE_ONCE(vma->vm_lock_seq, mm_lock_seq);
++    if (locked)
++    {
++        NvBool detached;
++        detached = refcount_sub_and_test(VMA_LOCK_OFFSET, &vma->vm_refcnt);
++        rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
++        WARN_ON_ONCE(detached);
++    }
++}
++EXPORT_SYMBOL(nv_vma_start_write);
++#endif // !NV_CAN_CALL_VMA_START_WRITE
+diff --git a/uvm/nvidia_uvm_linux.h b/uvm/nvidia_uvm_linux.h
+index 7dc8847e..f15ecd8a 100644
+--- a/uvm/nvidia_uvm_linux.h
++++ b/uvm/nvidia_uvm_linux.h
+@@ -449,9 +449,31 @@ static inline const char *kbasename(const char *str)
+ typedef unsigned long vm_flags_t;
+ #endif
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
++#define NV_IS_EXPORT_SYMBOL_GPL___vma_start_write 1
++#else
++#define NV_IS_EXPORT_SYMBOL_GPL___vma_start_write 0
++#endif
++
++#if NV_IS_EXPORT_SYMBOL_GPL___vma_start_write
++#define NV_CAN_CALL_VMA_START_WRITE 0
++#else // NV_IS_EXPORT_SYMBOL_GPL___vma_start_write
++#define NV_CAN_CALL_VMA_START_WRITE 1
++#endif
++
++#if !NV_CAN_CALL_VMA_START_WRITE
++/*
++ * Commit 45ad9f5290dc updated vma_start_write() to call __vma_start_write().
++ */
++void nv_vma_start_write(struct vm_area_struct *);
++#endif
++
+ static inline void nv_vm_flags_set(struct vm_area_struct *vma, vm_flags_t flags)
+ {
+-#if defined(NV_VM_AREA_STRUCT_HAS_CONST_VM_FLAGS)
++#if !NV_CAN_CALL_VMA_START_WRITE
++    nv_vma_start_write(vma);
++    ACCESS_PRIVATE(vma, __vm_flags) |= flags;
++#elif defined(NV_VM_AREA_STRUCT_HAS_CONST_VM_FLAGS)
+     vm_flags_set(vma, flags);
+ #else
+     vma->vm_flags |= flags;
+@@ -460,7 +482,10 @@ static inline void nv_vm_flags_set(struct vm_area_struct *vma, vm_flags_t flags)
+ 
+ static inline void nv_vm_flags_clear(struct vm_area_struct *vma, vm_flags_t flags)
+ {
+-#if defined(NV_VM_AREA_STRUCT_HAS_CONST_VM_FLAGS)
++#if !NV_CAN_CALL_VMA_START_WRITE
++    nv_vma_start_write(vma);
++    ACCESS_PRIVATE(vma, __vm_flags) &= ~flags;
++#elif defined(NV_VM_AREA_STRUCT_HAS_CONST_VM_FLAGS)
+     vm_flags_clear(vma, flags);
+ #else
+     vma->vm_flags &= ~flags;
+-- 
+2.39.5
+

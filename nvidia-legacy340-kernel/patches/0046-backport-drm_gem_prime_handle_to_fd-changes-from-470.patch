@@ -1,0 +1,36 @@
+From 079f15ff5bcf077deb055b1eee877b1ea2d1b726 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Wed, 1 Nov 2023 10:31:40 +0100
+Subject: [PATCH] backport drm_gem_prime_handle_to_fd changes from 470.223.02
+
+---
+ nv-drm.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/nv-drm.c b/nv-drm.c
+index f9a1c98..9ff34c1 100644
+--- a/nv-drm.c
++++ b/nv-drm.c
+@@ -523,7 +523,19 @@ static struct drm_driver nv_drm_driver = {
+     .gem_free_object = nv_gem_free,
+ #endif
+ 
++/*
++ * linux-next commit 71a7974ac701 ("drm/prime: Unexport helpers for fd/handle
++ * conversion") unexports drm_gem_prime_handle_to_fd() and
++ * drm_gem_prime_fd_to_handle().
++ *
++ * Prior linux-next commit 6b85aa68d9d5 ("drm: Enable PRIME import/export for
++ * all drivers") made these helpers the default when .prime_handle_to_fd /
++ * .prime_fd_to_handle are unspecified, so it's fine to just skip specifying
++ * them if the helpers aren't present.
++ */
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
+     .prime_handle_to_fd = drm_gem_prime_handle_to_fd,
++#endif
+ 
+ #if defined(NV_DRM_DRIVER_HAS_GEM_PRIME_CALLBACKS)
+     .gem_prime_export = drm_gem_prime_export,
+-- 
+2.20.1
+

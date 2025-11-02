@@ -1,0 +1,29 @@
+From bdf1cf42382551f88a3119881370c9f01fa96ecd Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Sat, 25 Apr 2020 13:56:38 +0200
+Subject: [PATCH 11/34] backport nv_ioremap_nocache changes from 440.64
+
+---
+ nv-linux.h | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/nv-linux.h b/nv-linux.h
+index 5e15463..1b412ce 100644
+--- a/nv-linux.h
++++ b/nv-linux.h
+@@ -688,11 +688,7 @@ extern nv_spinlock_t km_lock;
+         VM_ALLOC_RECORD(ptr, size, "vm_ioremap"); \
+     }
+ 
+-#define NV_IOREMAP_NOCACHE(ptr, physaddr, size) \
+-    { \
+-        (ptr) = ioremap_nocache(physaddr, size); \
+-        VM_ALLOC_RECORD(ptr, size, "vm_ioremap_nocache"); \
+-    }
++#define NV_IOREMAP_NOCACHE NV_IOREMAP
+ 
+ #if defined(NV_IOREMAP_CACHE_PRESENT)
+ #define NV_IOREMAP_CACHE(ptr, physaddr, size)            \
+-- 
+2.20.1
+

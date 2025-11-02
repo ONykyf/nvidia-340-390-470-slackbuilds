@@ -1,0 +1,58 @@
+From 0ca9f07474ff67d6dab6b6451b9f18aa8014d6af Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Wed, 22 Sep 2021 08:49:14 +0200
+Subject: [PATCH 01/34] backport error on unknown conftests
+
+for easier backporting of future conftest.sh changes
+---
+ Makefile    |  2 +-
+ conftest.sh | 13 ++++++++++++-
+ 2 files changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 125a690..dfd6df4 100644
+--- a/Makefile
++++ b/Makefile
+@@ -152,7 +152,7 @@ COMPILE_TESTS = \
+ 	do_gettimeofday \
+ 	drm_gem_object_put_unlocked \
+ 	drm_driver_legacy_feature_bit_present \
+-	drm_driver_prime_flag_present
++	drm_driver_prime_flag_present \
+ 
+ #
+ # CFLAGS dependent on the type of builds (e.g. single/muliple module, debug)
+diff --git a/conftest.sh b/conftest.sh
+index b7a85f0..8a13bf3 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2188,6 +2188,17 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DRIVER_PRIME_FLAG_PRESENT" "" "types"
+         ;;
+ 
++        # When adding a new conftest entry, please use the correct format for
++        # specifying the relevant upstream Linux kernel commit.
++        #
++        # <function> was added|removed|etc by commit <sha> ("<commit message")
++        # in <kernel-version> (<commit date>).
++
++        *)
++            # Unknown test name given
++            echo "Error: unknown conftest '$1' requested" >&2
++            exit 1
++        ;;
+     esac
+ }
+ 
+@@ -2596,7 +2607,7 @@ case "$6" in
+         # Run a series of compile tests to determine the set of interfaces
+         # and features available in the target kernel.
+         #
+-        shift 5
++        shift 6
+ 
+         test_headers
+ 
+-- 
+2.20.1
+

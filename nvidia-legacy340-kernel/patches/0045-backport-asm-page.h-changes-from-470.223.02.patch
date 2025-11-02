@@ -1,0 +1,54 @@
+From a2da44fef2a7958f206595225f4dfbd5453c6bc1 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Wed, 1 Nov 2023 10:30:50 +0100
+Subject: [PATCH] backport asm/page.h changes from 470.223.02
+
+---
+ conftest.sh | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/conftest.sh b/conftest.sh
+index 4fcc855..63d1dd4 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -182,6 +182,7 @@ test_headers() {
+ 
+     FILES_ARCH="$FILES_ARCH asm/set_memory.h"
+     FILES_ARCH="$FILES_ARCH asm/pgtable_types.h"
++    FILES_ARCH="$FILES_ARCH asm/page.h"
+ 
+     translate_and_find_header_files $HEADERS      $FILES
+     translate_and_find_header_files $HEADERS_ARCH $FILES_ARCH
+@@ -432,6 +433,9 @@ compile_test() {
+             #if defined(NV_ASM_PGTABLE_TYPES_H_PRESENT)
+             #include <asm/pgtable_types.h>
+             #endif
++            #if defined(NV_ASM_PAGE_H_PRESENT)
++            #include <asm/page.h>
++            #endif
+             #include <asm/set_memory.h>
+             #else
+             #include <asm/cacheflush.h>
+@@ -452,6 +456,9 @@ compile_test() {
+             #if defined(NV_ASM_PGTABLE_TYPES_H_PRESENT)
+             #include <asm/pgtable_types.h>
+             #endif
++            #if defined(NV_ASM_PAGE_H_PRESENT)
++            #include <asm/page.h>
++            #endif
+             #include <asm/set_memory.h>
+             #else
+             #include <asm/cacheflush.h>
+@@ -472,6 +479,9 @@ compile_test() {
+             #if defined(NV_ASM_PGTABLE_TYPES_H_PRESENT)
+             #include <asm/pgtable_types.h>
+             #endif
++            #if defined(NV_ASM_PAGE_H_PRESENT)
++            #include <asm/page.h>
++            #endif
+             #include <asm/set_memory.h>
+             #else
+             #include <asm/cacheflush.h>
+-- 
+2.20.1
+

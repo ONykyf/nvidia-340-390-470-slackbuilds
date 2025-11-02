@@ -1,0 +1,113 @@
+From 529ee93c52b6e7ccc9b805dd44390c4e3c0ac0ad Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Mon, 20 Dec 2021 14:39:02 +0100
+Subject: [PATCH 34/34] backport stdarg.h changes from 470.82.00
+
+---
+ conftest.sh              |  1 +
+ nv.h                     |  2 +-
+ nv_stdarg.h              | 39 +++++++++++++++++++++++++++++++++++++++
+ nvidia-modules-common.mk |  2 ++
+ os-interface.h           |  2 +-
+ 5 files changed, 44 insertions(+), 2 deletions(-)
+ create mode 100644 nv_stdarg.h
+
+diff --git a/conftest.sh b/conftest.sh
+index 826869f..ab1292a 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -178,6 +178,7 @@ test_headers() {
+     FILES="$FILES linux/fence.h"
+     FILES="$FILES linux/ktime.h"
+     FILES="$FILES linux/file.h"
++    FILES="$FILES linux/stdarg.h"
+ 
+     FILES_ARCH="$FILES_ARCH asm/set_memory.h"
+     FILES_ARCH="$FILES_ARCH asm/pgtable_types.h"
+diff --git a/nv.h b/nv.h
+index 40a13b5..d0b9bfe 100644
+--- a/nv.h
++++ b/nv.h
+@@ -13,7 +13,7 @@
+ #define _NV_H_
+ 
+ #include <nvtypes.h>
+-#include <stdarg.h>
++#include "nv_stdarg.h"
+ 
+ #if !defined(NV_MIN)
+ #define NV_MIN(_a,_b) ((_a) < (_b) ? (_a) : (_b))
+diff --git a/nv_stdarg.h b/nv_stdarg.h
+new file mode 100644
+index 0000000..4b63340
+--- /dev/null
++++ b/nv_stdarg.h
+@@ -0,0 +1,39 @@
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ * SPDX-License-Identifier: MIT
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a
++ * copy of this software and associated documentation files (the "Software"),
++ * to deal in the Software without restriction, including without limitation
++ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
++ * and/or sell copies of the Software, and to permit persons to whom the
++ * Software is furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in
++ * all copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++ * DEALINGS IN THE SOFTWARE.
++ */
++
++
++#ifndef _NV_STDARG_H_
++#define _NV_STDARG_H_
++
++#if defined(NV_KERNEL_INTERFACE_LAYER) && defined(NV_LINUX)
++   #include "conftest.h"
++   #if defined(NV_LINUX_STDARG_H_PRESENT)
++     #include <linux/stdarg.h>
++   #else
++     #include <stdarg.h>
++   #endif   
++#else
++   #include <stdarg.h>
++#endif   
++
++#endif // _NV_STDARG_H_
+diff --git a/nvidia-modules-common.mk b/nvidia-modules-common.mk
+index b94591b..b32bca7 100644
+--- a/nvidia-modules-common.mk
++++ b/nvidia-modules-common.mk
+@@ -118,6 +118,8 @@ MODULE_OBJECT := $(MODULE_NAME).ko
+ 
+ EXTRA_CFLAGS += -D__KERNEL__ -DMODULE -DNVRM -DNV_VERSION_STRING=\"340.108\" -Wno-unused-function -Wuninitialized -fno-strict-aliasing -mno-red-zone -mcmodel=kernel -DNV_UVM_ENABLE -D__linux__ -DNV_DEV_NAME=\"$(MODULE_NAME)\"
+ 
++EXTRA_CFLAGS	+= -DNV_KERNEL_INTERFACE_LAYER
++
+ #
+ # Detect SGI UV systems and apply system-specific optimizations.
+ #
+diff --git a/os-interface.h b/os-interface.h
+index 88f8f66..8576896 100644
+--- a/os-interface.h
++++ b/os-interface.h
+@@ -24,7 +24,7 @@
+ *                                                                           *
+ \***************************************************************************/
+ 
+-#include <stdarg.h>
++#include "nv_stdarg.h"
+ 
+ /*
+  * Define away Microsoft compiler extensions when possible
+-- 
+2.20.1
+

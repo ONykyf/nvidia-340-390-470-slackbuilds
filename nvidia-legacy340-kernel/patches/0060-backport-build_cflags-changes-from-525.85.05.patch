@@ -1,0 +1,26 @@
+From f3c652b59b9f0c8fde4759f1491abe5a245c6295 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Wed, 28 May 2025 19:49:43 +0200
+Subject: [PATCH] backport build_cflags changes from 525.85.05
+
+---
+ conftest.sh | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/conftest.sh b/conftest.sh
+index 63d1dd4b..eec7de50 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -203,7 +203,8 @@ create_skeleton_headers() {
+ build_cflags() {
+     BASE_CFLAGS="-O2 -D__KERNEL__ \
+ -DKBUILD_BASENAME=\"#conftest$$\" -DKBUILD_MODNAME=\"#conftest$$\" \
+--nostdinc -isystem $ISYSTEM"
++-nostdinc -isystem $ISYSTEM \
++-Wno-implicit-function-declaration -Wno-strict-prototypes"
+ 
+     if [ "$OUTPUT" != "$SOURCES" ]; then
+         OUTPUT_CFLAGS="-I$OUTPUT/include2 -I$OUTPUT/include"
+-- 
+2.39.5
+

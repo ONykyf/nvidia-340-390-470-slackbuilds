@@ -1,0 +1,81 @@
+From 670ae241f4ae3fd2120ce92a0c7cba9c87ac2068 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Wed, 26 Aug 2020 18:51:52 +0200
+Subject: [PATCH 18/34] backport nv_vmalloc changes from 450.57
+
+---
+ Makefile    |  1 +
+ conftest.sh | 20 ++++++++++++++++++++
+ nv-linux.h  |  8 ++++++++
+ 3 files changed, 29 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 14b0774..a022ffa 100644
+--- a/Makefile
++++ b/Makefile
+@@ -157,6 +157,7 @@ COMPILE_TESTS = \
+ 	drm_gem_object_get \
+ 	proc_ops \
+ 	timeval \
++	vmalloc_has_pgprot_t_arg \
+ 
+ #
+ # CFLAGS dependent on the type of builds (e.g. single/muliple module, debug)
+diff --git a/conftest.sh b/conftest.sh
+index 1c957d6..bee85b8 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2298,6 +2298,26 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_TIMEVAL_PRESENT" "" "types"
+         ;;
+ 
++        vmalloc_has_pgprot_t_arg)
++            #
++            # Determine if __vmalloc has the 'pgprot' argument.
++            #
++            # The third argument to __vmalloc, page protection
++            # 'pgprot_t prot', was removed by commit 88dca4ca5a93
++            # (mm: remove the pgprot argument to __vmalloc)
++            # in v5.8-rc1 (2020-06-01).
++        CODE="
++        #include <linux/vmalloc.h>
++
++        void conftest_vmalloc_has_pgprot_t_arg(void) {
++            pgprot_t prot;
++            (void)__vmalloc(0, 0, prot);
++        }"
++
++            compile_check_conftest "$CODE" "NV_VMALLOC_HAS_PGPROT_T_ARG" "" "types"
++
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+diff --git a/nv-linux.h b/nv-linux.h
+index 4be32d2..050b154 100644
+--- a/nv-linux.h
++++ b/nv-linux.h
+@@ -664,11 +664,19 @@ extern nv_spinlock_t km_lock;
+ #  define KM_FREE_RECORD(a,b,c)
+ #endif
+ 
++#if defined(NV_VMALLOC_HAS_PGPROT_T_ARG)
+ #define NV_VMALLOC(ptr, size)                               \
+     {                                                       \
+         (ptr) = __vmalloc(size, GFP_KERNEL, PAGE_KERNEL);   \
+         VM_ALLOC_RECORD(ptr, size, "vm_vmalloc");           \
+     }
++#else
++#define NV_VMALLOC(ptr, size)                               \
++    {                                                       \
++        (ptr) = __vmalloc(size, GFP_KERNEL);   \
++        VM_ALLOC_RECORD(ptr, size, "vm_vmalloc");           \
++    }
++#endif
+ 
+ #define NV_VFREE(ptr, size)                         \
+     {                                               \
+-- 
+2.20.1
+

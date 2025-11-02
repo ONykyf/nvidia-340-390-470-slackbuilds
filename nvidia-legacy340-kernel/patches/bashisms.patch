@@ -1,0 +1,14 @@
+Author: Andreas Beckmann <anbe@debian.org>
+Description: fix bashisms in conftest.sh
+
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2621,7 +2621,7 @@ case "$6" in
+ 
+         if [ -n "$VGX_BUILD" ]; then
+             if [ -f /proc/xen/capabilities ]; then
+-                if [ "`cat /proc/xen/capabilities`" == "control_d" ]; then
++                if [ "`cat /proc/xen/capabilities`" = "control_d" ]; then
+                     exit 0
+                 fi
+             else

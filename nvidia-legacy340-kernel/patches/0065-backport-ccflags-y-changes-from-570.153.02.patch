@@ -1,0 +1,65 @@
+From db4c35a95989d7ee3ca728b0c26b3c3a8d2720b3 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Sat, 24 May 2025 22:10:32 +0200
+Subject: [PATCH] backport ccflags-y changes from 570.153.02
+
+---
+ Makefile                 | 10 +++++-----
+ nvidia-modules-common.mk |  7 ++++---
+ 2 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 9b2bf007..d35d6d84 100644
+--- a/Makefile
++++ b/Makefile
+@@ -175,16 +175,16 @@ COMPILE_TESTS = \
+ #
+ 
+ ifdef NV_BUILD_MODULE_INSTANCES
+- EXTRA_CFLAGS += -DNV_BUILD_MODULE_INSTANCES=1
++ ccflags-y += -DNV_BUILD_MODULE_INSTANCES=1
+  ifneq ($(NV_MODULE_SUFFIX),frontend)
+- EXTRA_CFLAGS += -DNV_MODULE_INSTANCE=$(NV_MODULE_SUFFIX)
++ ccflags-y += -DNV_MODULE_INSTANCE=$(NV_MODULE_SUFFIX)
+  endif
+ else
+- EXTRA_CFLAGS += -DNV_MODULE_INSTANCE=0
+- EXTRA_CFLAGS += -DNV_BUILD_MODULE_INSTANCES=0
++ ccflags-y += -DNV_MODULE_INSTANCE=0
++ ccflags-y += -DNV_BUILD_MODULE_INSTANCES=0
+ endif
+ 
+-EXTRA_CFLAGS += -UDEBUG -U_DEBUG -DNDEBUG
++ccflags-y += -UDEBUG -U_DEBUG -DNDEBUG
+ 
+ #
+ # Include common definitions; we rely on the definition of the source path to
+diff --git a/nvidia-modules-common.mk b/nvidia-modules-common.mk
+index 6a8b15d5..430a973d 100644
+--- a/nvidia-modules-common.mk
++++ b/nvidia-modules-common.mk
+@@ -37,8 +37,8 @@ obj-m := $(MODULE_NAME).o
+ # warning types that are of little interest to us.
+ #
+ 
+-EXTRA_CFLAGS += -I$(src)
+-EXTRA_CFLAGS += -Wall -MD $(DEFINES) $(INCLUDES) -Wno-cast-qual -Wno-error
++ccflags-y += -I$(src)
++ccflags-y += -Wall -MD $(DEFINES) $(INCLUDES) -Wno-cast-qual -Wno-error
+ 
+ #
+ # Output directory for the build; default to the source directory if not set.
+@@ -123,8 +123,9 @@ EXTRA_CFLAGS	+= -DNV_KERNEL_INTERFACE_LAYER
+ #
+ # Detect SGI UV systems and apply system-specific optimizations.
+ #
++ccflags-y += $(EXTRA_CFLAGS)
+ ifneq ($(wildcard /proc/sgi_uv),)
+- EXTRA_CFLAGS += -DNV_CONFIG_X86_UV
++ ccflags-y += -DNV_CONFIG_X86_UV
+ endif
+ 
+ #
+-- 
+2.39.5
+

@@ -1,0 +1,74 @@
+From 83eb3e79083fc708fa0b37cb2bf8e980cf80bb49 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Tue, 21 Dec 2021 12:53:39 +0100
+Subject: [PATCH 25/34] check for drm_pci_init()
+
+---
+ Makefile    |  1 +
+ conftest.sh | 17 +++++++++++++++++
+ nv-drm.c    |  5 +++--
+ 3 files changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 76161c4..ac001ed 100644
+--- a/Makefile
++++ b/Makefile
+@@ -147,6 +147,7 @@ COMPILE_TESTS = \
+ 	vm_fault_present \
+ 	vm_fault_has_address \
+ 	drm_driver_unload_has_int_return_type \
++	drm_pci_init \
+ 	drm_legacy_pci_init \
+ 	timer_setup \
+ 	do_gettimeofday \
+diff --git a/conftest.sh b/conftest.sh
+index aee26ab..5ef80bf 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2104,6 +2104,23 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DRIVER_UNLOAD_HAS_INT_RETURN_TYPE" "" "types"
+         ;;
+ 
++        drm_pci_init)
++            CODE="
++            #if defined(NV_DRM_DRMP_H_PRESENT)
++            #include <drm/drmP.h>
++            #endif
++
++            #if defined(NV_DRM_DRM_PCI_H_PRESENT)
++            #include <drm/drm_pci.h>
++            #endif
++
++            void conftest_drm_pci_init(void) {
++                drm_pci_init();
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_PCI_INIT_PRESENT" "" "functions"
++        ;;
++
+         drm_legacy_pci_init)
+             #
+             # Determine if drm_legacy_pci_init() is present. drm_pci_init() was
+diff --git a/nv-drm.c b/nv-drm.c
+index 2110bf8..40cec8e 100644
+--- a/nv-drm.c
++++ b/nv-drm.c
+@@ -51,12 +51,13 @@
+ #include <drm/drm_legacy.h>
+ #endif
+ 
+-#if defined(NV_DRM_LEGACY_PCI_INIT_PRESENT)
++#if IS_ENABLED(CONFIG_DRM_LEGACY) && defined(NV_DRM_LEGACY_PCI_INIT_PRESENT)
+ #define nv_drm_pci_init drm_legacy_pci_init
+ #define nv_drm_pci_exit drm_legacy_pci_exit
+-#else
++#elif defined(NV_DRM_PCI_INIT_PRESENT)
+ #define nv_drm_pci_init drm_pci_init
+ #define nv_drm_pci_exit drm_pci_exit
++#else
+ #endif
+ 
+ extern nv_linux_state_t *nv_linux_devices;
+-- 
+2.20.1
+

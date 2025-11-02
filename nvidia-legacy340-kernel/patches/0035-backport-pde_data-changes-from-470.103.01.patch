@@ -1,0 +1,81 @@
+From 0f58ce3a457524b6f7cc8b0c2f51509d085c49cf Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Wed, 16 Feb 2022 16:56:45 +0100
+Subject: [PATCH] backport pde_data changes from 470.103.01
+
+---
+ Makefile    |  1 +
+ conftest.sh | 19 ++++++++++++++++++-
+ nv-linux.h  |  6 ++++--
+ 3 files changed, 23 insertions(+), 3 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 8b64faa..2963b91 100644
+--- a/Makefile
++++ b/Makefile
+@@ -131,6 +131,7 @@ COMPILE_TESTS = \
+ 	drm_available \
+ 	proc_create_data \
+ 	pde_data \
++	PDE_DATA \
+ 	proc_remove \
+ 	sg_table \
+ 	pm_vt_switch_required \
+diff --git a/conftest.sh b/conftest.sh
+index ab1292a..bacb966 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -1581,6 +1581,23 @@ compile_test() {
+ 
+ 
+         pde_data)
++            #
++            # Determine if the pde_data() function is present.
++            #
++            # The commit c28198889c15 removed the function
++            # 'PDE_DATA()', and replaced it with 'pde_data()'
++            # ("proc: remove PDE_DATA() completely") in v5.17-rc1. 
++            #
++            CODE="
++            #include <linux/proc_fs.h>
++            void conftest_pde_data(void) {
++                pde_data();
++            }"
++
++            compile_check_conftest "$CODE" "NV_PDE_DATA_PRESENT" "" "functions"
++        ;;
++
++        PDE_DATA)
+             #
+             # Determine if the PDE_DATA() function is present.
+             #
+@@ -1590,7 +1607,7 @@ compile_test() {
+                 PDE_DATA();
+             }"
+ 
+-            compile_check_conftest "$CODE" "NV_PDE_DATA_PRESENT" "" "functions"
++            compile_check_conftest "$CODE" "NV_PDE_DATA_UPPER_CASE_PRESENT" "" "functions"
+         ;;
+ 
+         get_num_physpages)
+diff --git a/nv-linux.h b/nv-linux.h
+index e0bcfd0..49c7973 100644
+--- a/nv-linux.h
++++ b/nv-linux.h
+@@ -2037,9 +2037,11 @@ typedef struct file_operations nv_proc_ops_t;
+     })
+ 
+ #if defined(NV_PDE_DATA_PRESENT)
+-# define NV_PDE_DATA(inode) PDE_DATA(inode)
++#define NV_PDE_DATA(inode) pde_data(inode)
++#elif defined(NV_PDE_DATA_UPPER_CASE_PRESENT)
++#define NV_PDE_DATA(inode) PDE_DATA(inode)
+ #else
+-# define NV_PDE_DATA(inode) PDE(inode)->data
++#define NV_PDE_DATA(inode) PDE(inode)->data
+ #endif
+ 
+ #if defined(NV_PROC_REMOVE_PRESENT)
+-- 
+2.20.1
+

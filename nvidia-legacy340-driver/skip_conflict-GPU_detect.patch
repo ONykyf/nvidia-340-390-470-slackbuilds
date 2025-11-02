@@ -1,0 +1,25 @@
+--- nvidia-installer-340.108/misc.c.orig	2019-12-12 01:31:06.000000000 +0200
++++ nvidia-installer-340.108/misc.c	2025-10-15 14:18:33.465277638 +0300
+@@ -2368,7 +2368,10 @@
+                  "For further details, please see the appendix SUPPORTED "
+                  "NVIDIA GRAPHICS CHIPS in the README available on the Linux "
+                  "driver download page at www.nvidia.com.", p->version);
+-        return FALSE;
++/*        return FALSE;
++ * We're just going to keep the message but skip the result
++ * so we can run this in a VM.
++ */
+     }
+ 
+     if (!found_vga_device)
+--- nvidia-installer-340.108/command-list.c.orig	2019-12-12 01:31:06.000000000 +0200
++++ nvidia-installer-340.108/command-list.c	2025-10-15 14:15:55.275273682 +0300
+@@ -148,7 +148,7 @@
+ 
+     }
+     
+-    if (!op->kernel_module_only) {
++    if (0) {
+         /*
+          * Note that searching the various paths may produce duplicate
+          * entries for conflicting files; this is OK because we will take

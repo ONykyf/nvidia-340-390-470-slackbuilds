@@ -1,0 +1,117 @@
+From 17a1286d6e2e7e85875b168bcbd862986d73d250 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Sat, 25 Apr 2020 11:40:44 +0200
+Subject: [PATCH 13/34] backport nv_timeval changes from 440.82
+
+---
+ Makefile       |  1 +
+ conftest.sh    | 17 +++++++++++++++++
+ nv-time.h      | 10 ++++++++--
+ os-interface.c |  8 ++++----
+ 4 files changed, 30 insertions(+), 6 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index ef8992a..14b0774 100644
+--- a/Makefile
++++ b/Makefile
+@@ -156,6 +156,7 @@ COMPILE_TESTS = \
+ 	drm_driver_has_legacy_dev_list \
+ 	drm_gem_object_get \
+ 	proc_ops \
++	timeval \
+ 
+ #
+ # CFLAGS dependent on the type of builds (e.g. single/muliple module, debug)
+diff --git a/conftest.sh b/conftest.sh
+index 9cafe54..1ea9928 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2263,6 +2263,23 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_PROC_OPS_PRESENT" "" "types"
+         ;;
+ 
++        timeval)
++            #
++            # Determine if the 'struct timeval' type is present.
++            #
++            # Removed by commit c766d1472c70 ("y2038: hide 
++            # timeval/timespec/itimerval/itimerspec types") in 5.6-rc3
++            # (2020-02-20).
++            #
++            CODE="
++            #include <linux/time.h>
++
++            struct timeval tm;
++            "
++
++            compile_check_conftest "$CODE" "NV_TIMEVAL_PRESENT" "" "types"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+diff --git a/nv-time.h b/nv-time.h
+index a34ceb2..c6f619c 100644
+--- a/nv-time.h
++++ b/nv-time.h
+@@ -28,7 +28,13 @@
+ #include <linux/ktime.h>
+ #endif
+ 
+-static inline void nv_gettimeofday(struct timeval *tv)
++#if defined (NV_TIMEVAL_PRESENT)
++typedef struct timeval nv_timeval; 
++#else
++typedef struct __kernel_old_timeval nv_timeval;
++#endif
++
++static inline void nv_gettimeofday(nv_timeval *tv)
+ {
+ #ifdef NV_DO_GETTIMEOFDAY_PRESENT
+     do_gettimeofday(tv);
+@@ -37,7 +43,7 @@ static inline void nv_gettimeofday(struct timeval *tv)
+ 
+     ktime_get_real_ts64(&now);
+ 
+-    *tv = (struct timeval) {
++    *tv = (nv_timeval) {
+         .tv_sec = now.tv_sec,
+         .tv_usec = now.tv_nsec/1000,
+     };
+diff --git a/os-interface.c b/os-interface.c
+index 7190b26..e170c7c 100644
+--- a/os-interface.c
++++ b/os-interface.c
+@@ -439,7 +439,7 @@ RM_STATUS NV_API_CALL os_get_current_time(
+     NvU32 *useconds
+ )
+ {
+-    struct timeval tm;
++    nv_timeval tm;
+ 
+     nv_gettimeofday(&tm);
+ 
+@@ -474,7 +474,7 @@ RM_STATUS NV_API_CALL os_delay_us(NvU32 MicroSeconds)
+     unsigned long usec;
+ 
+ #ifdef NV_CHECK_DELAY_ACCURACY
+-    struct timeval tm1, tm2;
++    nv_timeval tm1, tm2;
+ 
+     nv_gettimeofday(&tm1);
+ #endif
+@@ -514,9 +514,9 @@ RM_STATUS NV_API_CALL os_delay(NvU32 MilliSeconds)
+     unsigned long MicroSeconds;
+     unsigned long jiffies;
+     unsigned long mdelay_safe_msec;
+-    struct timeval tm_end, tm_aux;
++    nv_timeval tm_end, tm_aux;
+ #ifdef NV_CHECK_DELAY_ACCURACY
+-    struct timeval tm_start;
++    nv_timeval tm_start;
+ #endif
+ 
+     nv_gettimeofday(&tm_aux);
+-- 
+2.20.1
+

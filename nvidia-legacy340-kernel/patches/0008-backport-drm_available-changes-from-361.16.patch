@@ -1,0 +1,40 @@
+From c8f077a8bd339c6f1723033583c54e35f97e2e63 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Mon, 20 Dec 2021 18:17:00 +0100
+Subject: [PATCH 08/34] backport drm_available changes from 361.16
+
+---
+ conftest.sh | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/conftest.sh b/conftest.sh
+index 8a13bf3..8465331 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -1542,12 +1542,23 @@ compile_test() {
+             #endif
+             void conftest_drm_available(void) {
+                 struct drm_driver drv;
++
++                /* 2013-01-15 89177644a7b6306e6084a89eab7e290f4bfef397 */
+                 drv.gem_prime_pin = 0;
+                 drv.gem_prime_get_sg_table = 0;
+                 drv.gem_prime_vmap = 0;
+                 drv.gem_prime_vunmap = 0;
+                 (void)drm_gem_prime_import;
+                 (void)drm_gem_prime_export;
++
++                /* 2013-10-02 1bb72532ac260a2d3982b40bdd4c936d779d0d16 */
++                (void)drm_dev_alloc;
++
++                /* 2013-10-02 c22f0ace1926da399d9a16dfaf09174c1b03594c */
++                (void)drm_dev_register;
++
++                /* 2013-10-02 c3a49737ef7db0bdd4fcf6cf0b7140a883e32b2a */
++                (void)drm_dev_unregister;
+             }"
+ 
+             compile_check_conftest "$CODE" "NV_DRM_AVAILABLE" "" "generic"
+-- 
+2.20.1
+

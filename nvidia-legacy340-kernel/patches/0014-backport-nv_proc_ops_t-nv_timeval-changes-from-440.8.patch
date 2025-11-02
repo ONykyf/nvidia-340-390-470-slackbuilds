@@ -1,0 +1,55 @@
+From 4918c80580b679bcc861dcb186f421e4f62fc5a9 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Sat, 25 Apr 2020 11:42:24 +0200
+Subject: [PATCH 14/34] backport nv_proc_ops_t/nv_timeval changes from 440.82
+ (uvm part)
+
+---
+ uvm/Makefile          |  2 ++
+ uvm/nvidia_uvm_lite.c | 10 +++++-----
+ 2 files changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/uvm/Makefile b/uvm/Makefile
+index b99f16c..93d941b 100644
+--- a/uvm/Makefile
++++ b/uvm/Makefile
+@@ -172,6 +172,8 @@ COMPILE_TESTS = \
+ 	kuid_t \
+ 	vm_fault_has_address \
+ 	do_gettimeofday \
++	proc_ops \
++	timeval \
+ 
+ MODULE_NAME:= nvidia-uvm
+ 
+diff --git a/uvm/nvidia_uvm_lite.c b/uvm/nvidia_uvm_lite.c
+index fd7a4ce..c2abbc3 100644
+--- a/uvm/nvidia_uvm_lite.c
++++ b/uvm/nvidia_uvm_lite.c
+@@ -131,8 +131,8 @@ static
+ RM_STATUS _preexisting_error_on_channel(UvmGpuMigrationTracking *pMigTracker,
+                                          UvmCommitRecord *pRecord);
+ 
+-static void _set_timeout_in_usec(struct timeval *src,
+-                                 struct timeval *result,
++static void _set_timeout_in_usec(nv_timeval *src,
++                                 nv_timeval *result,
+                                  unsigned long timeoutInUsec)
+ {
+     if (!src || !result)
+@@ -2023,9 +2023,9 @@ void umvlite_destroy_per_process_gpu_resources(UvmGpuUuid *gpuUuidStruct)
+ static RM_STATUS _check_ecc_errors(UvmGpuMigrationTracking *pMigTracker,
+                                     NvBool *pIsEccErrorSet)
+ {
+-    struct timeval eccErrorStartTime = {0};
+-    struct timeval eccErrorCurrentTime = {0};
+-    struct timeval eccTimeout = {0};
++    nv_timeval eccErrorStartTime = {0};
++    nv_timeval eccErrorCurrentTime = {0};
++    nv_timeval eccTimeout = {0};
+     NvBool bEccErrorTimeout = NV_FALSE;
+     NvBool bEccIncomingError = NV_FALSE;
+     unsigned rmInterruptSet = 0;
+-- 
+2.20.1
+

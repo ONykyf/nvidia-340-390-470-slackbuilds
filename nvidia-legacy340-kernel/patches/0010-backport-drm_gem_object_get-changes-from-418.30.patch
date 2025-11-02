@@ -1,0 +1,75 @@
+From 4131a6a09b4bac888700d0c40f589ce8cd3fca53 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Sat, 3 Oct 2020 00:26:27 +0200
+Subject: [PATCH 10/34] backport drm_gem_object_get changes from 418.30
+
+---
+ Makefile    |  1 +
+ conftest.sh | 19 +++++++++++++++++++
+ nv-drm.c    |  6 ++++++
+ 3 files changed, 26 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 1f55b62..c709d7f 100644
+--- a/Makefile
++++ b/Makefile
+@@ -154,6 +154,7 @@ COMPILE_TESTS = \
+ 	drm_driver_legacy_feature_bit_present \
+ 	drm_driver_prime_flag_present \
+ 	drm_driver_has_legacy_dev_list \
++	drm_gem_object_get \
+ 
+ #
+ # CFLAGS dependent on the type of builds (e.g. single/muliple module, debug)
+diff --git a/conftest.sh b/conftest.sh
+index 7134767..ba25a5f 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2228,6 +2228,25 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DRIVER_HAS_LEGACY_DEV_LIST" "" "types"
+         ;;
+ 
++        drm_gem_object_get)
++            #
++            # Determine if the function drm_gem_object_get() is present.
++            #
++            # Added by commit e6b62714e87c8811d5564b6a0738dcde63a51774 (drm:
++            # Introduce drm_gem_object_{get,put}()) on 2017-02-28.
++            #
++            CODE="
++            #include <drm/drmP.h>
++            #if defined(NV_DRM_DRM_GEM_H_PRESENT)
++            #include <drm/drm_gem.h>
++            #endif
++            void conftest_drm_gem_object_get(void) {
++                drm_gem_object_get();
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_GEM_OBJECT_GET_PRESENT" "" "functions"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+diff --git a/nv-drm.c b/nv-drm.c
+index 0d1cdbf..5d22ad5 100644
+--- a/nv-drm.c
++++ b/nv-drm.c
+@@ -282,8 +282,14 @@ RM_STATUS NV_API_CALL nv_alloc_os_descriptor_handle(
+         goto done;
+     }
+ 
++#if defined(NV_DRM_GEM_OBJECT_GET_PRESENT)
++
+ #if defined(NV_DRM_GEM_OBJECT_PUT_UNLOCKED_PRESENT)
+     drm_gem_object_put_unlocked(&nv_obj->base);
++#else
++    drm_gem_object_put(&nv_obj->base);
++#endif
++
+ #else
+     drm_gem_object_unreference_unlocked(&nv_obj->base);
+ #endif
+-- 
+2.20.1
+

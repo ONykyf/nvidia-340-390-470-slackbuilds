@@ -1,0 +1,76 @@
+From 02acda46b1c79cc5a705006182f5f8f36e6972ac Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Sat, 3 Oct 2020 00:58:27 +0200
+Subject: [PATCH 23/34] backport drm_driver_has_gem_free_object changes from
+ 455.23.04
+
+---
+ Makefile    |  1 +
+ conftest.sh | 24 ++++++++++++++++++++++++
+ nv-drm.c    |  2 ++
+ 3 files changed, 27 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 0d6c500..aba77a1 100644
+--- a/Makefile
++++ b/Makefile
+@@ -160,6 +160,7 @@ COMPILE_TESTS = \
+ 	vmalloc_has_pgprot_t_arg \
+ 	mm_has_mmap_lock \
+ 	vga_tryget \
++	drm_driver_has_gem_free_object \
+ 
+ #
+ # CFLAGS dependent on the type of builds (e.g. single/muliple module, debug)
+diff --git a/conftest.sh b/conftest.sh
+index 771cad8..4279a99 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2374,6 +2374,30 @@ compile_test() {
+ 
+         ;;
+ 
++        drm_driver_has_gem_free_object)
++            #
++            # Determine if the 'drm_driver' structure has a 'gem_free_object'
++            # function pointer.
++            #
++            # drm_driver::gem_free_object is removed by commit 1a9458aeb8eb
++            # ("drm: remove drm_driver::gem_free_object") in v5.9-rc1.
++            #
++            CODE="
++            #if defined(NV_DRM_DRMP_H_PRESENT)
++            #include <drm/drmP.h>
++            #endif
++
++            #if defined(NV_DRM_DRM_DRV_H_PRESENT)
++            #include <drm/drm_drv.h>
++            #endif
++
++            int conftest_drm_driver_has_gem_free_object(void) {
++                return offsetof(struct drm_driver, gem_free_object);
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_DRIVER_HAS_GEM_FREE_OBJECT" "" "types"
++        ;;
++
+         vga_tryget)
+             #
+             # Determine if vga_tryget() is present
+diff --git a/nv-drm.c b/nv-drm.c
+index c2f11fd..52aa043 100644
+--- a/nv-drm.c
++++ b/nv-drm.c
+@@ -192,7 +192,9 @@ static struct drm_driver nv_drm_driver = {
+     .set_busid = drm_pci_set_busid,
+ #endif
+ 
++#if defined(NV_DRM_DRIVER_HAS_GEM_FREE_OBJECT)
+     .gem_free_object = nv_gem_free,
++#endif
+ 
+     .prime_handle_to_fd = drm_gem_prime_handle_to_fd,
+     .gem_prime_export = drm_gem_prime_export,
+-- 
+2.20.1
+

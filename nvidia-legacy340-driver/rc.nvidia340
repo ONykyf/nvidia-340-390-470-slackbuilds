@@ -1,0 +1,63 @@
+#!/bin/sh
+
+NVIDIA_VERSION=340.108
+
+GL_LIB=libGL.so.1
+EGL_LIB=libEGL.so.1
+GLES1_LIB=libGLESv1_CM.so.1
+GLES2_LIB=libGLESv2.so.2
+
+NGL_LIB=`echo $GL_LIB | cut -f 1-2 -d '.'`.$NVIDIA_VERSION
+NEGL_LIB=`echo $EGL_LIB | cut -f 1-2 -d '.'`.$NVIDIA_VERSION
+NGLES1_LIB=`echo $GLES1_LIB | cut -f 1-2 -d '.'`.$NVIDIA_VERSION
+NGLES2_LIB=`echo $GLES2_LIB | cut -f 1-2 -d '.'`.$NVIDIA_VERSION
+
+CL_LIB=libOpenCL.so.1
+
+if uname -m | grep 'x86_64' >/dev/null ; then
+  LIBDIRSUFFIX="64"
+else
+  LIBDIRSUFFIX=""
+fi
+
+cd /usr/lib$LIBDIRSUFFIX
+
+if lsmod | grep 'nvidia' >/dev/null ; then
+  if [ -x nvidia/$NGL_LIB ] ; then
+    ln -sf nvidia/$NGL_LIB $GL_LIB
+  fi
+  if [ -x nvidia/$NEGL_LIB ] ; then
+    ln -sf nvidia/$NEGL_LIB $EGL_LIB
+  fi
+  if [ -x nvidia/$NGLES1_LIB ] ; then
+    ln -sf nvidia/$NGLES1_LIB $GLES1_LIB
+  fi
+  if [ -x nvidia/$NGLES2_LIB ] ; then
+    ln -sf nvidia/$NGLES2_LIB $GLES2_LIB
+  fi
+  if [ -x nvidia/$CL_LIB.0.0 ] ; then
+    ln -sf nvidia/$CL_LIB.0.0 $CL_LIB
+  fi
+else
+  FILE=`ls $GL_LIB.* | cut -f 1 -d ' '`
+  if [ "$FILE" != "" -a -x $FILE ] ; then
+    ln -sf $FILE $GL_LIB
+  fi
+  FILE=`ls $EGL_LIB.* | cut -f 1 -d ' '`
+  if [ "$FILE" != "" -a -x $FILE ] ; then
+    ln -sf $FILE $EGL_LIB
+  fi
+  FILE=`ls $GLES1_LIB.* | cut -f 1 -d ' '`
+  if [ "$FILE" != "" -a -x $FILE ] ; then
+    ln -sf $FILE $GLES1_LIB
+  fi
+  FILE=`ls $GLES2_LIB.* | cut -f 1 -d ' '`
+  if [ "$FILE" != "" -a -x $FILE ] ; then
+    ln -sf $FILE $GLES2_LIB
+  fi
+  if [ -x $CL_LIB.0.0 ] ; then
+    ln -sf $CL_LIB.0.0 $CL_LIB
+  fi
+fi
+
+ldconfig -X

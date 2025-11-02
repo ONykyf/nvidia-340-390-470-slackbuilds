@@ -1,0 +1,73 @@
+From e6e478a643d3d590266ab6c16bf3f958c7301194 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Tue, 10 Dec 2024 20:08:50 +0100
+Subject: [PATCH] fix more uvm warnings
+
+---
+ uvm/nvidia_uvm_lite.c     | 6 ++++++
+ uvm/nvidia_uvm_lite_api.c | 1 +
+ 2 files changed, 7 insertions(+)
+
+diff --git a/uvm/nvidia_uvm_lite.c b/uvm/nvidia_uvm_lite.c
+index 61a2bd98..be187fc1 100644
+--- a/uvm/nvidia_uvm_lite.c
++++ b/uvm/nvidia_uvm_lite.c
+@@ -204,6 +204,7 @@ static void _stream_destroy(UvmStreamRecord *pStream)
+     kmem_cache_free(g_uvmStreamRecordCache, pStream);
+ }
+ 
++static
+ void _stop_and_destroy_leftover_streams(UvmProcessRecord *processRecord)
+ {
+     struct list_head *pos;
+@@ -691,6 +692,7 @@ static UvmGpuMigrationTracking * _get_mig_tracker(UvmCommitRecord * pRecord)
+ //         return SIGBUS.
+ //      3. Otherwise, map in a page from the cache, and allow access.
+ //
++static
+ #ifdef VM_FAULT_OOM
+ int _fault_common(struct vm_area_struct *vma, unsigned long vaddr,
+ #else
+@@ -823,6 +825,7 @@ done:
+     return retValue;
+ }
+ 
++static
+ #if defined(NV_VM_OPERATIONS_STRUCT_HAS_FAULT)
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
+ #ifdef VM_FAULT_OOM
+@@ -886,6 +889,7 @@ static struct vm_operations_struct uvmlite_vma_ops =
+ // without setting vma_ops and fault handler, Linux kernel assumes
+ // it's dealing with anonymous mapping (see handle_pte_fault).
+ //
++static
+ #if defined(NV_VM_OPERATIONS_STRUCT_HAS_FAULT)
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
+ #ifdef VM_FAULT_OOM
+@@ -2520,9 +2524,11 @@ RM_STATUS migrate_cpu_to_gpu(UvmGpuMigrationTracking *pMigTracker,
+                                         &numMethods);
+ 
+         if (rmStatus != RM_OK)
++        {
+             UVM_DBG_PRINT_RL("Failed to copy from cpu to gpu - vma: "
+                              "0x%p, rmStatus: 0x%0x\n",
+                              pRecord->vma, rmStatus);
++        }
+     }
+ 
+     rmStatus = _clear_cache_update_counters(pRecord, migratedPages);
+diff --git a/uvm/nvidia_uvm_lite_api.c b/uvm/nvidia_uvm_lite_api.c
+index 8448eb6e..3b8a9985 100644
+--- a/uvm/nvidia_uvm_lite_api.c
++++ b/uvm/nvidia_uvm_lite_api.c
+@@ -86,6 +86,7 @@ find_uvmlite_vma(unsigned long long requestedBase,
+ //
+ // Locking: you must hold a read / write lock on the mmap_sem.
+ //
++static
+ struct vm_area_struct *
+ find_counters_vma(unsigned long long requestedBase,
+     unsigned long long length,
+-- 
+2.39.5
+

@@ -1,0 +1,74 @@
+This is the proprietary binary video driver from NVidia for the XLibre
+X-server. This package does not include the kernel modules - they are
+a part of the nvidia-legacy340-kernel package.
+
+Installing the 32-bit compatibility libraries is available:
+if desired, do:
+  COMPAT32="yes" ./nvidia-legacy340-driver.SlackBuild
+
+This script now gives the option of installing the nvidia-persitenced
+daemon.  PLEASE read README.nvidia-persitenced before building with
+perstistenced.
+
+Several useful utilities are included: nvidia-xsettings, nvidia-smi,
+and nvidia-settings.  Please refer to the Nvidia documentation and man
+pages for details and usage.
+
+For CUDA/OpenCL to work after reboot, and for utilites such as
+nvidia-smi, you might need to include the following line in your
+/etc/rc.d/rc.local:
+
+# Create missing nvidia device nodes after reboot
+if [ -x /usr/bin/nvidia-modprobe ]; then
+  /usr/bin/nvidia-modprobe -c 0 -u
+fi
+
+NOTES:
+This nvidia-legacy340-driver DOES NOT conflict with open source drivers
+and libraries of XLibre, if proper /usr/share/X11/xorg.conf.d/10-nvidia.conf
+file, which is included, is installed.
+
+You DON'T need to blacklist nouveau in /etc/modprobe.d/*. If there is a file
+that contains a line 'blacklist nouveau', remove it.
+
+Moreover, you can choose nvidia or nouveau kernel/X drivers at boot time
+by blacklisting unneeded modules. The package installs a script
+/etc/rc.d/rc.nvidia340 that changes soft links to libGL, libEGL,
+libGLESv1_CM, and libGLESv2 between NVidia and system-wide libraries
+depending on whether nvidia-drm driver has been loaded at startup.
+Addititionally, an /usr/sbin/nvidia340-prepare-boot script is provided
+by the nvidia-kernel package and run right at its installation, although you
+can run it any time as root. It creates an /etc/lilo.conf.nvidia-${KERNEL}
+snippet that looks like this:
+
+# Linux bootable partition config begins
+image = /boot/vmlinuz-6.12.6
+  root = /dev/sda9
+  label = Linux-6.12.6-nvi
+  read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-6.12.6.img
+  append = " module_blacklist=nouveau"
+# Linux bootable partition config ends
+# Linux bootable partition config begins
+image = /boot/vmlinuz-6.12.6
+  root = /dev/sda9
+  label = Linux-6.12.6-nou
+  read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-6.12.6.img
+  append = " module_blacklist=nvidia,nvidia_uvm"
+# Linux bootable partition config ends
+
+You can add it (edited if you like) to /etc/lilo.conf to choose at boot
+which drivers to use. This adds an additional safety margin in case
+something goes wrong after an upgrade or an experiment. If you use, say,
+GRUB2 instead of LILO, you can take kernel options from here to use
+in grub.cfg.
+
+This driver provides OpenGL ES 2.0 only, which is insufficient for GTK4.
+Use a workaround like
+
+GSK_RENDERER=cairo pavucontrol
+
+to run GTK4 applications.
+
+Tested with linux kernels up to 6.17.6.

@@ -1,0 +1,13 @@
+--- NVIDIA-Linux-x86_64-340.108/kernel/nv-drm.c.orig	2025-10-28 10:02:38.326358587 +0200
++++ NVIDIA-Linux-x86_64-340.108/kernel/nv-drm.c	2025-10-28 10:03:59.566312943 +0200
+@@ -501,6 +501,10 @@
+     .poll = drm_poll,
+     .read = drm_read,
+     .llseek = noop_llseek,
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
++ // Rel. commit. "fs: move FMODE_UNSIGNED_OFFSET to fop_flags" (Christian Brauner, 9 Aug 2024)
++    .fop_flags = FOP_UNSIGNED_OFFSET,
++#endif
+ };
+ 
+ static struct drm_driver nv_drm_driver = {

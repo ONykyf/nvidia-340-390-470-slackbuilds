@@ -1,0 +1,16 @@
+Author: Andreas Beckmann <anbe@debian.org>
+Description: (HACK!) fix ARCH detection for armhf running on arm64
+ since the 340xx/390xx series do not support arm64 at all, just map
+ armv8l to arm, too, to fix building the kernel module in armhf
+ chroots running on arm64 hosts
+
+--- a/nvidia-modules-common.mk
++++ b/nvidia-modules-common.mk
+@@ -106,6 +106,7 @@ LD ?= ld
+ ifndef ARCH
+  ARCH := $(shell uname -m | sed -e 's/i.86/i386/' \
+  -e 's/armv[0-7]\w\+/arm/' \
++ -e 's/armv8l/arm/' \
+  -e 's/aarch64/arm64/' \
+  -e 's/ppc64le/powerpc/' \
+  )

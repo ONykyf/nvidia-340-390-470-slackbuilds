@@ -1,0 +1,174 @@
+From b4f4335beaadb7af971999bd37a74200c0d91d16 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Fri, 11 Aug 2023 10:27:27 +0200
+Subject: [PATCH] backport get_user_pages changes from 418.30
+
+---
+ conftest.sh | 49 ++++++++++++++++++++++++++++---------------------
+ nv-linux.h  |  9 ++++-----
+ 2 files changed, 32 insertions(+), 26 deletions(-)
+
+diff --git a/conftest.sh b/conftest.sh
+index b1b83d0..9e3c2e5 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -1859,29 +1859,33 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_NODE_END_PFN_PRESENT" "" "functions"
+         ;;
+ 
+-        get_user_pages)     
++        get_user_pages)
+             #
+             # Conftest for get_user_pages()
+             #
+             # Use long type for get_user_pages and unsigned long for nr_pages
+-            # 2013 Feb 22: 28a35716d317980ae9bc2ff2f84c33a3cda9e884
++            # by commit 28a35716d317 ("mm: use long type for page counts
++            # in mm_populate() and get_user_pages()") in v3.9 (2013-02-22)
+             #
+-            # Removed struct task_struct *tsk & struct mm_struct *mm from get_user_pages.
+-            # 2016 Feb 12: cde70140fed8429acf7a14e2e2cbd3e329036653
++            # Removed struct task_struct *tsk & struct mm_struct *mm from
++            # get_user_pages by commit cde70140fed8 ("mm/gup: Overload
++            # get_user_pages() functions") in v4.6 (2016-02-12)
+             #
+-            # Replaced get_user_pages6 with get_user_pages.
+-            # 2016 April 4: c12d2da56d0e07d230968ee2305aaa86b93a6832
++            # Replaced get_user_pages6 with get_user_pages by commit
++            # c12d2da56d0e ("mm/gup: Remove the macro overload API migration
++            # helpers from the get_user*() APIs") in v4.6 (2016-04-04)
+             #
+-            # Replaced write and force parameters with gup_flags.
+-            # 2016 Oct 12: 768ae309a96103ed02eb1e111e838c87854d8b51
++            # Replaced write and force parameters with gup_flags by
++            # commit 768ae309a961 ("mm: replace get_user_pages() write/force
++            # parameters with gup_flags") in v4.9 (2016-10-13)
+             #
+             # linux-4.4.168 cherry-picked commit 768ae309a961 without
+-            # c12d2da56d0e which is covered in Conftest #3
++            # c12d2da56d0e which is covered in Conftest #3.
+             #
+             # Conftest #1: Check if get_user_pages accepts 6 arguments.
+             # Return if true.
+             # Fall through to conftest #2 on failure.
+-
++            #
+             echo "$CONFTEST_PREAMBLE
+             #include <linux/mm.h>
+             long get_user_pages(unsigned long start,
+@@ -1894,14 +1898,14 @@ compile_test() {
+             }" > conftest$$.c
+ 
+             $CC $CFLAGS -c conftest$$.c > /dev/null 2>&1
+-            rm -f conftest$$.c    
++            rm -f conftest$$.c
+             if [ -f conftest$$.o ]; then
+                 echo "#define NV_GET_USER_PAGES_HAS_WRITE_AND_FORCE_ARGS" | append_conftest "functions"
+                 echo "#undef NV_GET_USER_PAGES_HAS_TASK_STRUCT" | append_conftest "functions"
+                 rm -f conftest$$.o
+                 return
+             fi
+-            
++
+             # Conftest #2: Check if get_user_pages has gup_flags instead of
+             # write and force parameters. And that gup doesn't accept a
+             # task_struct and mm_struct as its first arguments.
+@@ -1956,7 +1960,6 @@ compile_test() {
+                 return
+             fi
+ 
+-            
+             echo "#define NV_GET_USER_PAGES_HAS_WRITE_AND_FORCE_ARGS" | append_conftest "functions"
+             echo "#define NV_GET_USER_PAGES_HAS_TASK_STRUCT" | append_conftest "functions"
+ 
+@@ -1968,16 +1971,18 @@ compile_test() {
+             # Determine if the function get_user_pages_remote() is
+             # present and has write/force/locked/tsk parameters.
+             #
+-            # get_user_pages_remote() was added by:
+-            #   2016 Feb 12: 1e9877902dc7e11d2be038371c6fbf2dfcd469d7
++            # get_user_pages_remote() was added by commit 1e9877902dc7
++            # ("mm/gup: Introduce get_user_pages_remote()") in v4.6 (2016-02-12)
+             #
+             # get_user_pages[_remote]() write/force parameters
+-            # replaced with gup_flags:
+-            #   2016 Oct 12: 768ae309a96103ed02eb1e111e838c87854d8b51
+-            #   2016 Oct 12: 9beae1ea89305a9667ceaab6d0bf46a045ad71e7
++            # replaced with gup_flags by commits 768ae309a961 ("mm: replace
++            # get_user_pages() write/force parameters with gup_flags") and
++            # commit 9beae1ea8930 ("mm: replace get_user_pages_remote()
++            # write/force parameters with gup_flags") in v4.9 (2016-10-13)
+             #
+-            # get_user_pages_remote() added 'locked' parameter
+-            #   2016 Dec 14:5b56d49fc31dbb0487e14ead790fc81ca9fb2c99
++            # get_user_pages_remote() added 'locked' parameter by
++            # commit 5b56d49fc31d ("mm: add locked parameter to
++            # get_user_pages_remote()") in v4.10 (2016-12-14)
+             #
+             # get_user_pages_remote() removed 'tsk' parameter by
+             # commit 64019a2e467a ("mm/gup: remove task_struct pointer for
+@@ -1986,7 +1991,7 @@ compile_test() {
+             # conftest #1: check if get_user_pages_remote() is available
+             # return if not available.
+             # Fall through to conftest #2 if it is present
+-
++            #
+             echo "$CONFTEST_PREAMBLE
+             #include <linux/mm.h>
+             void conftest_get_user_pages_remote(void) {
+@@ -2005,9 +2010,11 @@ compile_test() {
+                 return
+             fi
+ 
++            #
+             # conftest #2: check if get_user_pages_remote() has write and
+             # force arguments. Return if these arguments are present
+             # Fall through to conftest #3 if these args are absent.
++            #
+             echo "#define NV_GET_USER_PAGES_REMOTE_PRESENT" | append_conftest "functions"
+             echo "$CONFTEST_PREAMBLE
+             #include <linux/mm.h>
+diff --git a/nv-linux.h b/nv-linux.h
+index 1c95b1e..c0177e8 100644
+--- a/nv-linux.h
++++ b/nv-linux.h
+@@ -2121,7 +2121,7 @@ static inline NvU64 nv_node_end_pfn(int nid)
+  * 2016 Oct 12: 768ae309a96103ed02eb1e111e838c87854d8b51
+  *
+  * A 7-argument version of get_user_pages was introduced into linux-4.4.y by
+- * commit 8e50b8b07f462ab4b91bc1491b1c91bd75e4ad40 which cherry-pciked the
++ * commit 8e50b8b07f462ab4b91bc1491b1c91bd75e4ad40 which cherry-picked the
+  * replacement of the write and force parameters with gup_flags
+  *
+  */
+@@ -2151,7 +2151,6 @@ static inline NvU64 nv_node_end_pfn(int nid)
+             return get_user_pages(current, current->mm, start, nr_pages, flags,
+                                   pages, vmas);
+         }
+-
+     #endif
+ #else
+     #if defined(NV_GET_USER_PAGES_HAS_WRITE_AND_FORCE_ARGS)
+@@ -2211,8 +2210,8 @@ static inline NvU64 nv_node_end_pfn(int nid)
+  */
+ 
+ #if defined(NV_GET_USER_PAGES_REMOTE_PRESENT)
+-    #if defined (NV_GET_USER_PAGES_REMOTE_HAS_WRITE_AND_FORCE_ARGS)
+-        #define NV_GET_USER_PAGES_REMOTE get_user_pages_remote
++    #if defined(NV_GET_USER_PAGES_REMOTE_HAS_WRITE_AND_FORCE_ARGS)
++        #define NV_GET_USER_PAGES_REMOTE    get_user_pages_remote
+     #else
+         static inline long NV_GET_USER_PAGES_REMOTE(struct task_struct *tsk,
+                                                     struct mm_struct *mm,
+@@ -2250,7 +2249,7 @@ static inline NvU64 nv_node_end_pfn(int nid)
+     #endif
+ #else
+     #if defined(NV_GET_USER_PAGES_HAS_WRITE_AND_FORCE_ARGS)
+-        #define NV_GET_USER_PAGES_REMOTE    NV_GET_USER_PAGES
++        #define NV_GET_USER_PAGES_REMOTE    get_user_pages
+     #else
+         #include <linux/mm.h>
+         #include <linux/sched.h>
+-- 
+2.20.1
+

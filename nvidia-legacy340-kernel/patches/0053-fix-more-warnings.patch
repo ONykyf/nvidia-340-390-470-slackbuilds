@@ -1,0 +1,124 @@
+From 1839524b706e80f7f7a023e4112ff5f2c89e3051 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Sun, 8 Dec 2024 22:13:22 +0100
+Subject: [PATCH] fix more warnings
+
+---
+ nv-acpi.c     | 2 ++
+ nv-dma.c      | 3 +++
+ nv-drm.c      | 2 ++
+ nv-frontend.c | 3 ---
+ nv-frontend.h | 3 +++
+ nv-mmap.c     | 1 +
+ nv-procfs.c   | 1 +
+ 7 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/nv-acpi.c b/nv-acpi.c
+index 550ea6f3..24e6717c 100644
+--- a/nv-acpi.c
++++ b/nv-acpi.c
+@@ -647,7 +647,9 @@ acpi_status nv_acpi_find_methods(
+ 
+ void NV_API_CALL nv_acpi_methods_uninit(void)
+ {
++#if defined(NV_ACPI_BUS_GET_DEVICE_PRESENT)
+     struct acpi_device *device = NULL;
++#endif
+ 
+     nvif_handle = NULL;
+     wmmx_handle = NULL;
+diff --git a/nv-dma.c b/nv-dma.c
+index 5cea528e..52065cc3 100644
+--- a/nv-dma.c
++++ b/nv-dma.c
+@@ -39,6 +39,7 @@ static void nv_fill_scatterlist
+ #endif
+ }
+ 
++static
+ RM_STATUS nv_create_dma_map_scatterlist(nv_dma_map_t *dma_map)
+ {
+     RM_STATUS status = NV_ALLOC_DMA_MAP_SCATTERLIST(dma_map);
+@@ -53,6 +54,7 @@ RM_STATUS nv_create_dma_map_scatterlist(nv_dma_map_t *dma_map)
+     return status;
+ }
+ 
++static
+ void nv_destroy_dma_map_scatterlist(nv_dma_map_t *dma_map)
+ {
+ #if defined(NV_SG_TABLE_PRESENT)
+@@ -62,6 +64,7 @@ void nv_destroy_dma_map_scatterlist(nv_dma_map_t *dma_map)
+ #endif
+ }
+ 
++static
+ void nv_load_dma_map_scatterlist(
+     nv_dma_map_t *dma_map,
+     NvU64 *pte_array
+diff --git a/nv-drm.c b/nv-drm.c
+index 9ff34c1e..e676287c 100644
+--- a/nv-drm.c
++++ b/nv-drm.c
+@@ -347,7 +347,9 @@ static
+  */
+ void nv_drm_pci_exit(struct drm_driver *driver, struct pci_driver *pdriver)
+ {
++#if defined(NV_DRM_DRIVER_HAS_LEGACY_DEV_LIST)
+ 	struct drm_device *dev, *tmp;
++#endif
+ 
+ 	DRM_DEBUG("\n");
+ 
+diff --git a/nv-frontend.c b/nv-frontend.c
+index 658140d7..03bf54e7 100644
+--- a/nv-frontend.c
++++ b/nv-frontend.c
+@@ -40,9 +40,6 @@ nvidia_module_t *nv_minor_num_table[NV_FRONTEND_CONTROL_DEVICE_MINOR_MAX + 1];
+ #if defined(CONFIG_PROC_FS)
+ static struct proc_dir_entry *nv_proc_topdir;
+ #endif
+-#else
+-int nvidia_init_module(void);
+-void nvidia_exit_module(void);
+ #endif
+ 
+ extern void nv_procfs_unregister_all(struct proc_dir_entry *entry);
+diff --git a/nv-frontend.h b/nv-frontend.h
+index 057ee504..7235d492 100644
+--- a/nv-frontend.h
++++ b/nv-frontend.h
+@@ -47,4 +47,7 @@ int nvidia_unregister_module(nvidia_module_t *);
+ int nvidia_frontend_add_device(nvidia_module_t *, nv_linux_state_t *);
+ int nvidia_frontend_remove_device(nvidia_module_t *, nv_linux_state_t *);
+ 
++int nvidia_init_module(void);
++void nvidia_exit_module(void);
++
+ #endif
+diff --git a/nv-mmap.c b/nv-mmap.c
+index 473d5fad..82ebaa2b 100644
+--- a/nv-mmap.c
++++ b/nv-mmap.c
+@@ -198,6 +198,7 @@ int nv_encode_caching(
+         case NV_MEMORY_CACHED:
+             if (NV_ALLOW_CACHING(memory_type))
+                 break;
++            __attribute__((__fallthrough__));
+         default:
+             nv_printf(NV_DBG_ERRORS,
+                 "NVRM: VM: cache type %d not supported for memory type %d!\n",
+diff --git a/nv-procfs.c b/nv-procfs.c
+index 56bb5ff5..da9670dd 100644
+--- a/nv-procfs.c
++++ b/nv-procfs.c
+@@ -569,6 +569,7 @@ nv_procfs_add_text_file(
+     NV_CREATE_PROC_FILE(filename, parent, text_file, (void *)text);
+ }
+ 
++static
+ void nv_procfs_unregister_all(struct proc_dir_entry *entry, struct proc_dir_entry *delimiter)
+ {
+ #if defined(NV_PROC_REMOVE_PRESENT)
+-- 
+2.39.5
+

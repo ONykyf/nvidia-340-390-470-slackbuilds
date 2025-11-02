@@ -1,0 +1,93 @@
+From 5c84ed63deaffa4690b2757ed39d24929226b0f9 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Tue, 15 Dec 2020 18:17:00 +0100
+Subject: [PATCH 24/34] backport drm_prime_pages_to_sg_has_drm_device_arg
+ changes from 455.45.01
+
+---
+ Makefile    |  1 +
+ conftest.sh | 24 ++++++++++++++++++++++++
+ nv-drm.c    | 13 ++++++++++++-
+ 3 files changed, 37 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index aba77a1..76161c4 100644
+--- a/Makefile
++++ b/Makefile
+@@ -161,6 +161,7 @@ COMPILE_TESTS = \
+ 	mm_has_mmap_lock \
+ 	vga_tryget \
+ 	drm_driver_has_gem_free_object \
++	drm_prime_pages_to_sg_has_drm_device_arg \
+ 
+ #
+ # CFLAGS dependent on the type of builds (e.g. single/muliple module, debug)
+diff --git a/conftest.sh b/conftest.sh
+index 4279a99..aee26ab 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2414,6 +2414,30 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_VGA_TRYGET_PRESENT" "" "functions"
+         ;;
+ 
++        drm_prime_pages_to_sg_has_drm_device_arg)
++            #
++            # Determine if drm_prime_pages_to_sg() has 'dev' argument.
++            #
++            # drm_prime_pages_to_sg() is updated to take 'dev' argument by commit
++            # 707d561f77b5 ("drm: allow limiting the scatter list size.").
++            #
++            CODE="
++            #if defined(NV_DRM_DRMP_H_PRESENT)
++            #include <drm/drmP.h>
++            #endif
++            #if defined(NV_DRM_DRM_PRIME_H_PRESENT)
++            #include <drm/drm_prime.h>
++            #endif
++
++            struct sg_table *drm_prime_pages_to_sg(struct drm_device *dev,
++                                                   struct page **pages,
++                                                   unsigned int nr_pages) {
++                return 0;
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_PRIME_PAGES_TO_SG_HAS_DRM_DEVICE_ARG" "" "types"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+diff --git a/nv-drm.c b/nv-drm.c
+index 52aa043..2110bf8 100644
+--- a/nv-drm.c
++++ b/nv-drm.c
+@@ -135,6 +135,17 @@ static void nv_gem_free(
+     NV_KFREE(nv_obj, sizeof(*nv_obj));
+ }
+ 
++static inline struct sg_table*
++nv_drm_prime_pages_to_sg(struct drm_device *dev,
++                         struct page **pages, unsigned int nr_pages)
++{
++#if defined(NV_DRM_PRIME_PAGES_TO_SG_HAS_DRM_DEVICE_ARG)
++    return drm_prime_pages_to_sg(dev, pages, nr_pages);
++#else
++    return drm_prime_pages_to_sg(pages, nr_pages);
++#endif
++}
++
+ static struct sg_table* nv_gem_prime_get_sg_table(
+     struct drm_gem_object *obj
+ )
+@@ -142,7 +153,7 @@ static struct sg_table* nv_gem_prime_get_sg_table(
+     struct nv_gem_object *nv_obj = container_of(obj, struct nv_gem_object, base);
+     int page_count = obj->size >> PAGE_SHIFT;
+ 
+-    return drm_prime_pages_to_sg(nv_obj->pages, page_count);
++    return nv_drm_prime_pages_to_sg(obj->dev, nv_obj->pages, page_count);
+ }
+ 
+ static void* nv_gem_prime_vmap(
+-- 
+2.20.1
+

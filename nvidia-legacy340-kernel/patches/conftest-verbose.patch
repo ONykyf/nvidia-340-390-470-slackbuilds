@@ -1,0 +1,70 @@
+Author: Andreas Beckmann <anbe@debian.org>
+Description: dump the generated conftest headers
+
+--- a/nvidia-modules-common.mk
++++ b/nvidia-modules-common.mk
+@@ -174,20 +174,37 @@ $(obj)/$(CORE_OBJS):
+ $(obj)/$(VERSION_HEADER):
+ 	@echo \#define NV_COMPILER \"`$(CC) -v 2>&1 | tail -n 1`\" > $@
+ 
++.PHONY: conftest-verbose
++conftest-verbose:
++	uname -a
++	@echo 'CONFTEST=$(CONFTEST)'
++	@echo 'CONFTEST_CFLAGS=$(CONFTEST_CFLAGS)'
++	@echo 'KBUILD_CFLAGS=$(KBUILD_CFLAGS)'
++	@echo 'LINUXINCLUDE=$(LINUXINCLUDE)'
++	@echo 'LDFLAGS=$(LDFLAGS)'
++	@echo 'ARCH=$(ARCH)'
++
+ CONFTEST_COMPILE_TEST_HEADERS := $(obj)/conftest/macros.h \
+ $(obj)/conftest/functions.h $(obj)/conftest/symbols.h $(obj)/conftest/types.h \
+ $(obj)/conftest/generic.h
++CONFTEST_COMPILE_TEST_HEADERS += $(obj)/conftest/headers.h
+ 
+ CONFTEST_HEADERS := $(obj)/conftest.h $(CONFTEST_COMPILE_TEST_HEADERS) \
+ $(obj)/conftest/patches.h
+ 
+ $(obj)/conftest.h $(CONFTEST_COMPILE_TEST_HEADERS): conftest-compile-test
++	@echo " CONFTEST $(notdir $@):"
++	@cat $@
+ 
+-conftest-compile-test: $(src)/conftest.sh
++conftest-compile-test: $(src)/conftest.sh conftest-verbose
++	@echo " CONFTEST: compile_tests"
+ 	@if ! $(CONFTEST) compile_tests $(COMPILE_TESTS); then exit 1; fi
+ 
+-$(obj)/conftest/patches.h:
++$(obj)/conftest/patches.h: $(src)/conftest.sh conftest-verbose
++	@echo " CONFTEST: patch_check"
+ 	@if ! $(CONFTEST) patch_check; then exit 1; fi
++	@echo " CONFTEST $(notdir $@):"
++	@cat $@
+ 
+ MODULE_GLUE_TARGETS = $(addprefix $(obj)/,$(MODULE_GLUE_OBJS))
+ 
+@@ -243,8 +260,9 @@ BUILD_SANITY_CHECKS = \
+ 
+ SKIP_SANITY_CHECKS	 =
+ 
+-build-sanity-checks:
++build-sanity-checks: conftest-verbose
+ 	@for SANITY_CHECK in $(filter-out $(SKIP_SANITY_CHECKS),$(BUILD_SANITY_CHECKS)); do \
++	 echo " CONFTEST: $$SANITY_CHECK"; \
+ 	 if ! $(CONFTEST) $$SANITY_CHECK full_output; then \
+ 	 exit 1; \
+ 	 fi; \
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -3201,6 +3201,11 @@ case "$6" in
+         #
+         shift 6
+ 
++	echo "conftest.sh: CC=$CC"
++	echo "conftest.sh: CFLAGS=$CFLAGS"
++	echo "conftest.sh: KBUILD_CFLAGS=$KBUILD_CFLAGS"
++	echo "conftest.sh: ARCH=$ARCH"
++
+         test_headers
+ 
+         for i in $*; do compile_test $i; done

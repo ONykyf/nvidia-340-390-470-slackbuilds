@@ -1,0 +1,77 @@
+From 0377efc56761f711740bc48e0744aa6facaad474 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Thu, 27 Mar 2025 19:11:23 +0100
+Subject: [PATCH] backport drm_driver_has_date from 570.124.04
+
+---
+ Makefile    |  1 +
+ conftest.sh | 24 ++++++++++++++++++++++++
+ nv-drm.c    |  4 ++++
+ 3 files changed, 29 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index a17d6096..9b2bf007 100644
+--- a/Makefile
++++ b/Makefile
+@@ -168,6 +168,7 @@ COMPILE_TESTS = \
+ 	drm_device_has_pdev \
+ 	acpi_bus_get_device \
+ 	vm_area_struct_has_const_vm_flags \
++	drm_driver_has_date \
+ 
+ #
+ # CFLAGS dependent on the type of builds (e.g. single/muliple module, debug)
+diff --git a/conftest.sh b/conftest.sh
+index eec7de50..bf43a538 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2747,6 +2747,30 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_VM_AREA_STRUCT_HAS_CONST_VM_FLAGS" "" "types"
+         ;;
+ 
++        drm_driver_has_date)
++            #
++            # Determine if the 'drm_driver' structure has a 'date' field.
++            #
++            # Removed by commit cb2e1c2136f7 ("drm: remove driver date from
++            # struct drm_driver and all drivers") in linux-next, expected in
++            # v6.14.
++            #
++            CODE="
++            #if defined(NV_DRM_DRMP_H_PRESENT)
++            #include <drm/drmP.h>
++            #endif
++
++            #if defined(NV_DRM_DRM_DRV_H_PRESENT)
++            #include <drm/drm_drv.h>
++            #endif
++
++            int conftest_drm_driver_has_date(void) {
++                return offsetof(struct drm_driver, date);
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_DRIVER_HAS_DATE" "" "types"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+diff --git a/nv-drm.c b/nv-drm.c
+index e676287c..f6fb4583 100644
+--- a/nv-drm.c
++++ b/nv-drm.c
+@@ -548,7 +548,11 @@ static struct drm_driver nv_drm_driver = {
+ 
+     .name = "nvidia-drm",
+     .desc = "NVIDIA DRM driver",
++
++#if defined(NV_DRM_DRIVER_HAS_DATE)
+     .date = "20150116",
++#endif
++
+     .major = 0,
+     .minor = 0,
+     .patchlevel = 0,
+-- 
+2.39.5
+

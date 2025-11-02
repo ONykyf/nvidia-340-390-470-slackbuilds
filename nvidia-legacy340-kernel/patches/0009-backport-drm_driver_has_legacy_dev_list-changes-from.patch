@@ -1,0 +1,66 @@
+From b0385fa2e2dbea79a392a02968a426d0df7b221c Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Mon, 20 Dec 2021 23:54:56 +0100
+Subject: [PATCH 09/34] backport drm_driver_has_legacy_dev_list changes from
+ 361.16
+
+---
+ Makefile    |  1 +
+ conftest.sh | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index dfd6df4..1f55b62 100644
+--- a/Makefile
++++ b/Makefile
+@@ -153,6 +153,7 @@ COMPILE_TESTS = \
+ 	drm_gem_object_put_unlocked \
+ 	drm_driver_legacy_feature_bit_present \
+ 	drm_driver_prime_flag_present \
++	drm_driver_has_legacy_dev_list \
+ 
+ #
+ # CFLAGS dependent on the type of builds (e.g. single/muliple module, debug)
+diff --git a/conftest.sh b/conftest.sh
+index 8465331..7134767 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2199,6 +2199,35 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DRIVER_PRIME_FLAG_PRESENT" "" "types"
+         ;;
+ 
++        drm_driver_has_legacy_dev_list)
++            #
++            # Determine if the 'drm_driver' structure has a 'legacy_dev_list' field.
++            #
++            # drm_driver::device_list was added by:
++            #   2008-11-28  e7f7ab45ebcb54fd5f814ea15ea079e079662f67
++            # and then renamed to drm_driver::legacy_device_list by:
++            #   2013-12-11  b3f2333de8e81b089262b26d52272911523e605f
++            #
++            # The commit 57bb1ee60340 ("drm: Compile out legacy chunks from
++            # struct drm_device") compiles out the legacy chunks like
++            # drm_driver::legacy_dev_list. (5.11)
++            #
++            CODE="
++            #if defined(NV_DRM_DRMP_H_PRESENT)
++            #include <drm/drmP.h>
++            #endif
++
++            #if defined(NV_DRM_DRM_DRV_H_PRESENT)
++            #include <drm/drm_drv.h>
++            #endif
++
++            int conftest_drm_driver_has_legacy_dev_list(void) {
++                return offsetof(struct drm_driver, legacy_dev_list);
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_DRIVER_HAS_LEGACY_DEV_LIST" "" "types"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+-- 
+2.20.1
+

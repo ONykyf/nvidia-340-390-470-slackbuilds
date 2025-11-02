@@ -1,0 +1,88 @@
+From 43c879a453366a1a4f2a5baff209c7dcd7c5ea51 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Tue, 21 Dec 2021 15:12:55 +0100
+Subject: [PATCH 33/34] check for member agp in struct drm_device
+
+---
+ conftest.sh | 24 ++++++++++++++++++++++++
+ nv-drm.c    |  6 ++++++
+ 2 files changed, 30 insertions(+)
+
+diff --git a/conftest.sh b/conftest.sh
+index b7d295f..826869f 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2499,6 +2499,30 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DEVICE_HAS_PDEV" "" "types"
+         ;;
+ 
++        drm_device_has_agp)
++            #
++            # Determine if the 'drm_device' structure has a 'agp' field.
++            #
++            # Moved by commit 04dfe19a5ed6 ("drm: Mark AGP implementation
++            # and ioctls as legacy") in v5.14-rc1. No longer compiled in if
++            # CONFIG_DRM_LEGACY is disabled.
++            #
++            CODE="
++            #if defined(NV_DRM_DRMP_H_PRESENT)
++            #include <drm/drmP.h>
++            #endif
++
++            #if defined(NV_DRM_DRM_DEVICE_H_PRESENT)
++            #include <drm/drm_device.h>
++            #endif
++
++            int conftest_drm_device_has_agp(void) {
++                return offsetof(struct drm_device, agp);
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_DEVICE_HAS_AGP" "" "types"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+diff --git a/nv-drm.c b/nv-drm.c
+index 7c1d700..f9a1c98 100644
+--- a/nv-drm.c
++++ b/nv-drm.c
+@@ -138,6 +138,7 @@
+ #define nv_drm_pci_exit drm_pci_exit
+ #else
+ 
++#if defined(NV_DRM_DEVICE_HAS_AGP)
+ // copied from src:linux (5.9.11-1) drivers/gpu/drm/drm_legacy.h
+ struct nv_drm_agp_mem {
+ 	unsigned long handle;
+@@ -225,6 +226,7 @@ void nv_drm_pci_agp_destroy(struct drm_device *dev)
+ 		dev->agp = NULL;
+ 	}
+ }
++#endif
+ 
+ // copied from src:linux (5.9.11-1) drivers/gpu/drm/drm_pci.c
+ static int nv_drm_get_pci_dev(struct pci_dev *pdev,
+@@ -256,7 +258,9 @@ static int nv_drm_get_pci_dev(struct pci_dev *pdev,
+ 	if (drm_core_check_feature(dev, DRIVER_MODESET))
+ 		pci_set_drvdata(pdev, dev);
+ 
++#if defined(NV_DRM_DEVICE_HAS_AGP)
+ 	nv_drm_pci_agp_init(dev);
++#endif
+ 
+ 	ret = drm_dev_register(dev, ent->driver_data);
+ 	if (ret)
+@@ -272,7 +276,9 @@ static int nv_drm_get_pci_dev(struct pci_dev *pdev,
+ 	return 0;
+ 
+ err_agp:
++#if defined(NV_DRM_DEVICE_HAS_AGP)
+ 	nv_drm_pci_agp_destroy(dev);
++#endif
+ 	pci_disable_device(pdev);
+ err_free:
+ 	drm_dev_put(dev);
+-- 
+2.20.1
+

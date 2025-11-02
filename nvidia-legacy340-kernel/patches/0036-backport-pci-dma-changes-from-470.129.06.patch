@@ -1,0 +1,84 @@
+From a18823c87cfef4ddaa498abb295639449c646d8b Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Mon, 20 Jun 2022 10:14:54 +0200
+Subject: [PATCH] backport pci/dma changes from 470.129.06
+
+---
+ nv-dma.c | 8 ++++----
+ nv-vm.c  | 4 ++--
+ nv.c     | 8 ++++----
+ 3 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/nv-dma.c b/nv-dma.c
+index 6fce552..5cea528 100644
+--- a/nv-dma.c
++++ b/nv-dma.c
+@@ -136,10 +136,10 @@ RM_STATUS NV_API_CALL nv_dma_map_pages(
+         return status;
+     }
+ 
+-    dma_map->sg_map_count = pci_map_sg(dma_map->dev,
++    dma_map->sg_map_count = dma_map_sg(&dma_map->dev->dev,
+             NV_DMA_MAP_SCATTERLIST(dma_map),
+             NV_DMA_MAP_SCATTERLIST_LENGTH(dma_map),
+-            PCI_DMA_BIDIRECTIONAL);
++            DMA_BIDIRECTIONAL);
+     if (dma_map->sg_map_count == 0)
+     {
+         nv_printf(NV_DBG_ERRORS,
+@@ -211,8 +211,8 @@ RM_STATUS NV_API_CALL nv_dma_unmap_pages(
+ 
+     if (dma_map->sg_map_count != 0)
+     {
+-        pci_unmap_sg(dma_map->dev, NV_DMA_MAP_SCATTERLIST(dma_map),
+-                NV_DMA_MAP_SCATTERLIST_LENGTH(dma_map), PCI_DMA_BIDIRECTIONAL);
++        dma_unmap_sg(&dma_map->dev->dev, NV_DMA_MAP_SCATTERLIST(dma_map),
++                NV_DMA_MAP_SCATTERLIST_LENGTH(dma_map), DMA_BIDIRECTIONAL);
+     }
+ 
+     *priv = dma_map->user_pages;
+diff --git a/nv-vm.c b/nv-vm.c
+index 0a9e59e..ead4f09 100644
+--- a/nv-vm.c
++++ b/nv-vm.c
+@@ -169,12 +169,12 @@ extern unsigned int nv_remap_limit;
+ 
+ static inline int nv_map_sg(struct pci_dev *dev, struct scatterlist *sg)
+ {
+-    return pci_map_sg(dev, sg, 1, PCI_DMA_BIDIRECTIONAL);
++    return dma_map_sg(&dev->dev, sg, 1, DMA_BIDIRECTIONAL);
+ }
+ 
+ static inline void nv_unmap_sg(struct pci_dev *dev, struct scatterlist *sg)
+ {
+-    pci_unmap_sg(dev, sg, 1, PCI_DMA_BIDIRECTIONAL);
++    dma_unmap_sg(&dev->dev, sg, 1, DMA_BIDIRECTIONAL);
+ }
+ 
+ #define NV_MAP_SG_MAX_RETRIES 16
+diff --git a/nv.c b/nv.c
+index 9559228..b1aec9b 100644
+--- a/nv.c
++++ b/nv.c
+@@ -3549,14 +3549,14 @@ NvU64 NV_API_CALL nv_get_dma_start_address(
+         goto done;
+     }
+ 
+-    dma_addr = pci_map_single(dev, NULL, 1, DMA_BIDIRECTIONAL);
+-    if (pci_dma_mapping_error(dev, dma_addr))
++    dma_addr = dma_map_single(&dev->dev, NULL, 1, DMA_BIDIRECTIONAL);
++    if (dma_mapping_error(&dev->dev, dma_addr))
+     {
+-        pci_set_dma_mask(dev, saved_dma_mask);
++        dma_set_mask(&dev->dev, saved_dma_mask);
+         goto done;
+     }
+ 
+-    pci_unmap_single(dev, dma_addr, 1, DMA_BIDIRECTIONAL);
++    dma_unmap_single(&dev->dev, dma_addr, 1, DMA_BIDIRECTIONAL);
+ 
+     /*
+      * From IBM: "For IODA2, native DMA bypass or KVM TCE-based implementation
+-- 
+2.20.1
+

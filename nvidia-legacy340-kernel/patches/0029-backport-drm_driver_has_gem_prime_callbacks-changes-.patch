@@ -1,0 +1,112 @@
+From cf9de8d9bb784c6193f701f30c2955b40cf5c61b Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Mon, 20 Dec 2021 18:45:21 +0100
+Subject: [PATCH 29/34] backport drm_driver_has_gem_prime_callbacks changes
+ from 460.39
+
+---
+ Makefile    |  1 +
+ conftest.sh | 43 +++++++++++++++++++++++++++++++------------
+ nv-drm.c    |  3 +++
+ 3 files changed, 35 insertions(+), 12 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index ac001ed..8c0bfc2 100644
+--- a/Makefile
++++ b/Makefile
+@@ -163,6 +163,7 @@ COMPILE_TESTS = \
+ 	vga_tryget \
+ 	drm_driver_has_gem_free_object \
+ 	drm_prime_pages_to_sg_has_drm_device_arg \
++	drm_driver_has_gem_prime_callbacks \
+ 
+ #
+ # CFLAGS dependent on the type of builds (e.g. single/muliple module, debug)
+diff --git a/conftest.sh b/conftest.sh
+index 2058cb6..0206074 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -1545,24 +1545,12 @@ compile_test() {
+             #include <drm/drm_drv.h>
+             #endif
+ 
+-            #if defined(NV_DRM_DRM_PRIME_H_PRESENT)
+-            #include <drm/drm_prime.h>
+-            #endif
+-
+             #if !defined(CONFIG_DRM) && !defined(CONFIG_DRM_MODULE)
+             #error DRM not enabled
+             #endif
+             void conftest_drm_available(void) {
+                 struct drm_driver drv;
+ 
+-                /* 2013-01-15 89177644a7b6306e6084a89eab7e290f4bfef397 */
+-                drv.gem_prime_pin = 0;
+-                drv.gem_prime_get_sg_table = 0;
+-                drv.gem_prime_vmap = 0;
+-                drv.gem_prime_vunmap = 0;
+-                (void)drm_gem_prime_import;
+-                (void)drm_gem_prime_export;
+-
+                 /* 2013-10-02 1bb72532ac260a2d3982b40bdd4c936d779d0d16 */
+                 (void)drm_dev_alloc;
+ 
+@@ -2456,6 +2444,37 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_PRIME_PAGES_TO_SG_HAS_DRM_DEVICE_ARG" "" "types"
+         ;;
+ 
++        drm_driver_has_gem_prime_callbacks)
++            #
++            # Determine if drm_driver structure has the GEM and PRIME callback
++            # function pointers.
++            #
++            # The GEM and PRIME callback are removed from drm_driver
++            # structure, by commit d693def4fd1c ("drm: Remove obsolete GEM and
++            # PRIME callbacks from struct drm_driver").
++            #
++            CODE="
++            #if defined(NV_DRM_DRMP_H_PRESENT)
++            #include <drm/drmP.h>
++            #endif
++
++            #if defined(NV_DRM_DRM_DRV_H_PRESENT)
++            #include <drm/drm_drv.h>
++            #endif
++
++            void conftest_drm_driver_has_gem_and_prime_callbacks(void) {
++                struct drm_driver drv;
++
++                drv.gem_prime_pin = 0;
++                drv.gem_prime_get_sg_table = 0;
++                drv.gem_prime_vmap = 0;
++                drv.gem_prime_vunmap = 0;
++                drv.gem_vm_ops = 0;
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_DRIVER_HAS_GEM_PRIME_CALLBACKS" "" "types"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+diff --git a/nv-drm.c b/nv-drm.c
+index 4853498..a1ef924 100644
+--- a/nv-drm.c
++++ b/nv-drm.c
+@@ -500,10 +500,13 @@ static struct drm_driver nv_drm_driver = {
+ #endif
+ 
+     .prime_handle_to_fd = drm_gem_prime_handle_to_fd,
++
++#if defined(NV_DRM_DRIVER_HAS_GEM_PRIME_CALLBACKS)
+     .gem_prime_export = drm_gem_prime_export,
+     .gem_prime_get_sg_table = nv_gem_prime_get_sg_table,
+     .gem_prime_vmap = nv_gem_prime_vmap,
+     .gem_prime_vunmap = nv_gem_prime_vunmap,
++#endif
+ 
+     .name = "nvidia-drm",
+     .desc = "NVIDIA DRM driver",
+-- 
+2.20.1
+

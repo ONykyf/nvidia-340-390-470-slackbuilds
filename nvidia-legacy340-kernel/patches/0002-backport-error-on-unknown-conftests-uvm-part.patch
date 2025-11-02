@@ -1,0 +1,33 @@
+From c24884ecbc3b3ab11f936016553aab0d916d4a54 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Wed, 22 Dec 2021 18:06:40 +0100
+Subject: [PATCH 02/34] backport error on unknown conftests (uvm part)
+
+---
+ uvm/Makefile | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/uvm/Makefile b/uvm/Makefile
+index 0cad8ff..bc0cdaa 100644
+--- a/uvm/Makefile
++++ b/uvm/Makefile
+@@ -157,7 +157,6 @@ RM_OUT_DIR ?= $(src)/..
+ VERSION_HEADER := $(RM_OUT_DIR)/nv_compiler.h
+ 
+ COMPILE_TESTS = \
+-	remap_page_range \
+ 	remap_pfn_range \
+ 	irq_handler_t \
+ 	vm_insert_page \
+@@ -172,7 +171,7 @@ COMPILE_TESTS = \
+ 	fatal_signal_pending \
+ 	kuid_t \
+ 	vm_fault_has_address \
+-	do_gettimeofday
++	do_gettimeofday \
+ 
+ MODULE_NAME:= nvidia-uvm
+ 
+-- 
+2.20.1
+

@@ -1,0 +1,36 @@
+Author: Andreas Beckmann <anbe@debian.org>
+Description: use KBUILD_CFLAGS
+ allows building a amd64 kernel module with i386 user space
+ skip -Werror=* since that breaks how conftest.sh detects stuff
+
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -261,7 +261,16 @@ build_cflags() {
+         fi
+     fi
+ 
+-    CFLAGS="$BASE_CFLAGS $MACH_CFLAGS $OUTPUT_CFLAGS $AUTOCONF_CFLAGS"
++    CFLAGS=
++    for flag in $KBUILD_CFLAGS
++    do
++        case $flag in
++            -Werror*)   ;;
++            *)          CFLAGS="$CFLAGS $flag" ;;
++        esac
++    done
++
++    CFLAGS="$CFLAGS $BASE_CFLAGS $MACH_CFLAGS $OUTPUT_CFLAGS $AUTOCONF_CFLAGS"
+     CFLAGS="$CFLAGS -I$HEADERS -I$HEADERS/uapi -I$OUTPUT/include/generated/uapi"
+ 
+     if [ "$ARCH" = "i386" -o "$ARCH" = "x86_64" ]; then
+--- a/nvidia-modules-common.mk
++++ b/nvidia-modules-common.mk
+@@ -108,7 +108,7 @@ ifndef ARCH
+  )
+ endif
+ 
+-CONFTEST := /bin/sh $(src)/conftest.sh "$(CC)" "$(HOST_CC)" $(ARCH) $(KERNEL_SOURCES) $(KERNEL_OUTPUT)
++CONFTEST := /bin/sh $(src)/conftest.sh "$(strip $(CC))" "$(strip $(HOST_CC))" $(ARCH) $(KERNEL_SOURCES) $(KERNEL_OUTPUT)
+ 
+ MODULE_ROOT := /lib/modules/$(KERNEL_UNAME)/kernel/drivers
+ 

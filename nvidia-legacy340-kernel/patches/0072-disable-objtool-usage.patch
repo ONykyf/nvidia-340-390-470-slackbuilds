@@ -1,0 +1,29 @@
+From 834757327ddfb3cd5cf2d01e6ad2ca3335c8049f Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Tue, 16 Sep 2025 12:11:48 +0200
+Subject: [PATCH] disable objtool usage
+
+objtool from Linux 6.15 or later refuses the blob
+
+inspired by a similar fix from src:broadcom-sta
+---
+ Makefile | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index d35d6d84..4500101c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -212,6 +212,9 @@ $(foreach obj_file, $(BUILD_MODULES_LIST), $(eval $(call BUILD_MODULE_RULE,$(MOD
+ $(eval $(call BUILD_MODULE_RULE,$(MODULE_BASENAME)-$(BUILD_MODULE_FRONTEND).ko,$(BUILD_MODULE_FRONTEND),))
+ $(eval $(call BUILD_MODULE_RULE,$(MODULE_BASENAME).ko,,))
+ 
++# The blob is rejected by objtool from Linux 6.15 or later.
++$(MODULE_NAME).o: override objtool-enabled =
++
+ #
+ # Add dependencies for the generated targets, depending on whether we are
+ # building multiple RM instances or a single RM.
+-- 
+2.39.5
+

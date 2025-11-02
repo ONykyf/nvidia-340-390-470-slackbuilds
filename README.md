@@ -30,13 +30,13 @@ Clone the repository with Git like so:
 git clone https://github.com/ONykyf/nvidia-340-390-470-slackbuilds.git
 cd nvidia-340-390-470-slackbuilds
 ```
-Using this method gives you the opportunity to later simply update the repository by running git pull. Please be advised that the initial download of the Git repository is about 600 MB.
+Using this method gives you the opportunity to later simply update the repository by running git pull. Please be advised that the initial download of the Git repository is about 480 Mb.
 
 ## How to build and install
 
 Just run `nvidia-legacy${VERSION}-kernel.SlackBuild` and `nvidia-legacy${VERSION}-driver.SlackBuild` in the respective directories for the VERSION you need, and install the obtained packages.
 
-Observe that *.run installers from NVidia are one level up in the directory hierarchy to save space. Files for 340 and 390 are included, but the installer for 470 is not because of its size (266455K). The script `get_NVIDIA-Linux-x86_64-470.256.02.run.sh` will download it for you.
+Observe that *.run installers from NVidia are one level up in the directory hierarchy to save space. Files for 340 and 390 are included, but the installer for 470 is not because of its size (266455 Kb). The script `get_NVIDIA-Linux-x86_64-470.256.02.run.sh` will download it for you.
 
 The created packages and build logs are put alongside the build scripts (not in `/tmp` or wherever). You can move them to another place to keep the cloned repository intact and not to lose the build packages in case of the repository update.
 

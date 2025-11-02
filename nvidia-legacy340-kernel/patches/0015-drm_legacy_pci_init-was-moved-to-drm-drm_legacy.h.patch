@@ -1,0 +1,61 @@
+From 0402cecc56475d8d77c1fe5ffd2552332abd1c54 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Tue, 28 Apr 2020 10:41:36 +0200
+Subject: [PATCH 15/34] drm_legacy_pci_init() was moved to drm/drm_legacy.h
+
+---
+ conftest.sh | 8 ++++++++
+ nv-drm.c    | 4 ++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/conftest.sh b/conftest.sh
+index 1ea9928..4a57faa 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -155,6 +155,7 @@ test_headers() {
+     FILES="$FILES drm/drm_file.h"
+     FILES="$FILES drm/drm_ioctl.h"
+     FILES="$FILES drm/drm_pci.h"
++    FILES="$FILES drm/drm_legacy.h"
+     FILES="$FILES generated/autoconf.h"
+     FILES="$FILES generated/compile.h"
+     FILES="$FILES generated/utsrelease.h"
+@@ -2062,6 +2063,9 @@ compile_test() {
+             #
+             #  2017-05-24  10631d724deff712343d96dd3017cd323349f761
+             #
++            # and moved to drm_legacy.h by:
++            #  2019-12-03  1be9d5f069964108125592af92304da76c5865bf (5.6)
++            #
+             CODE="
+             #if defined(NV_DRM_DRMP_H_PRESENT)
+             #include <drm/drmP.h>
+@@ -2070,6 +2074,10 @@ compile_test() {
+             #if defined(NV_DRM_DRM_PCI_H_PRESENT)
+             #include <drm/drm_pci.h>
+             #endif
++
++            #if defined(NV_DRM_DRM_LEGACY_H_PRESENT)
++            #include <drm/drm_legacy.h>
++            #endif
+             void conftest_drm_legacy_pci_init(void) {
+                 drm_legacy_pci_init();
+             }"
+diff --git a/nv-drm.c b/nv-drm.c
+index 5d22ad5..c2f11fd 100644
+--- a/nv-drm.c
++++ b/nv-drm.c
+@@ -47,6 +47,10 @@
+ #include <drm/drm_gem.h>
+ #endif
+ 
++#if defined(NV_DRM_DRM_LEGACY_H_PRESENT)
++#include <drm/drm_legacy.h>
++#endif
++
+ #if defined(NV_DRM_LEGACY_PCI_INIT_PRESENT)
+ #define nv_drm_pci_init drm_legacy_pci_init
+ #define nv_drm_pci_exit drm_legacy_pci_exit
+-- 
+2.20.1
+

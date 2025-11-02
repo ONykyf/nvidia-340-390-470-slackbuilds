@@ -1,0 +1,54 @@
+From 3943cdf41b985335b50891ac05a7624453029598 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Tue, 21 Dec 2021 10:27:31 +0100
+Subject: [PATCH 30/34] skip list operations if drm_device.legacy_dev_list is
+ gone
+
+---
+ nv-drm.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/nv-drm.c b/nv-drm.c
+index a1ef924..a4518da 100644
+--- a/nv-drm.c
++++ b/nv-drm.c
+@@ -258,10 +258,12 @@ static int nv_drm_get_pci_dev(struct pci_dev *pdev,
+ 	if (ret)
+ 		goto err_agp;
+ 
++#if defined(NV_DRM_DRIVER_HAS_LEGACY_DEV_LIST)
+ 	/* No locking needed since shadow-attach is single-threaded since it may
+ 	 * only be called from the per-driver module init hook. */
+ 	if (drm_core_check_feature(dev, DRIVER_LEGACY))
+ 		list_add_tail(&dev->legacy_dev_list, &driver->legacy_dev_list);
++#endif
+ 
+ 	return 0;
+ 
+@@ -296,7 +298,9 @@ int nv_drm_pci_init(struct drm_driver *driver, struct pci_driver *pdriver)
+ 		return -EINVAL;
+ 
+ 	/* If not using KMS, fall back to stealth mode manual scanning. */
++#if defined(NV_DRM_DRIVER_HAS_LEGACY_DEV_LIST)
+ 	INIT_LIST_HEAD(&driver->legacy_dev_list);
++#endif
+ 	for (i = 0; pdriver->id_table[i].vendor != 0; i++) {
+ 		pid = &pdriver->id_table[i];
+ 
+@@ -340,11 +344,13 @@ void nv_drm_pci_exit(struct drm_driver *driver, struct pci_driver *pdriver)
+ 	if (!(driver->driver_features & DRIVER_LEGACY)) {
+ 		WARN_ON(1);
+ 	} else {
++#if defined(NV_DRM_DRIVER_HAS_LEGACY_DEV_LIST)
+ 		list_for_each_entry_safe(dev, tmp, &driver->legacy_dev_list,
+ 					 legacy_dev_list) {
+ 			list_del(&dev->legacy_dev_list);
+ 			drm_put_dev(dev);
+ 		}
++#endif
+ 	}
+ 	DRM_INFO("Module unloaded\n");
+ }
+-- 
+2.20.1
+

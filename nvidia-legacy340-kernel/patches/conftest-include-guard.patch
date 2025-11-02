@@ -1,0 +1,20 @@
+Author: Andreas Beckmann <anbe@debian.org>
+Description: add include guards to conftest.h
+
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -132,11 +132,14 @@ update_conftest() {
+ 
+         # regenerate conftest.h to include any include existing subheaders
+         rm -f conftest.h
++        echo '#ifndef NV_CONFTEST_H_' >> conftest.h
++        echo '#define NV_CONFTEST_H_' >> conftest.h
+         for i in $COMPILE_TEST_HEADERS; do
+             if [ -f conftest/$i.h ]; then
+                 echo "#include \"conftest/$i.h\"" >> conftest.h
+             fi
+         done
++        echo '#endif' >> conftest.h
+     else
+         rm -f $TEMPORARY_HEADER
+     fi 

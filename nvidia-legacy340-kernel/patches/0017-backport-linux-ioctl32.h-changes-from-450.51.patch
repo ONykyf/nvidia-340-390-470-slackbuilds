@@ -1,0 +1,45 @@
+From 60f18a0a865779b06b66407faab9a70b793124d2 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Fri, 24 Sep 2021 13:27:13 +0200
+Subject: [PATCH 17/34] backport linux/ioctl32.h changes from 450.51
+
+---
+ nv-linux.h             | 5 -----
+ uvm/nvidia_uvm_linux.h | 5 -----
+ 2 files changed, 10 deletions(-)
+
+diff --git a/nv-linux.h b/nv-linux.h
+index 11aafc9..4be32d2 100644
+--- a/nv-linux.h
++++ b/nv-linux.h
+@@ -134,11 +134,6 @@
+ #include <asm/page.h>               /* PAGE_OFFSET                      */
+ #include <asm/pgtable.h>            /* pte bit definitions              */
+ 
+-#if defined(NVCPU_X86_64) && !defined(HAVE_COMPAT_IOCTL)
+-#include <linux/syscalls.h>         /* sys_ioctl()                      */
+-#include <linux/ioctl32.h>          /* register_ioctl32_conversion()    */
+-#endif
+-
+ #if !defined(NV_FILE_OPERATIONS_HAS_IOCTL) && \
+   !defined(NV_FILE_OPERATIONS_HAS_UNLOCKED_IOCTL)
+ #error "struct file_operations compile test likely failed!"
+diff --git a/uvm/nvidia_uvm_linux.h b/uvm/nvidia_uvm_linux.h
+index 1625209..d9b4c4b 100644
+--- a/uvm/nvidia_uvm_linux.h
++++ b/uvm/nvidia_uvm_linux.h
+@@ -156,11 +156,6 @@
+ #include <asm/page.h>               /* PAGE_OFFSET                      */
+ #include <asm/pgtable.h>            /* pte bit definitions              */
+ 
+-#if defined(NVCPU_X86_64) && !defined(HAVE_COMPAT_IOCTL)
+-#include <linux/syscalls.h>         /* sys_ioctl()                      */
+-#include <linux/ioctl32.h>          /* register_ioctl32_conversion()    */
+-#endif
+-
+ #if !defined(NV_FILE_OPERATIONS_HAS_IOCTL) && \
+   !defined(NV_FILE_OPERATIONS_HAS_UNLOCKED_IOCTL)
+ #error "struct file_operations compile test likely failed!"
+-- 
+2.20.1
+

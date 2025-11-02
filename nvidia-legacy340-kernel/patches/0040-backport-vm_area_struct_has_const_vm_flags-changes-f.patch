@@ -1,0 +1,221 @@
+From 46316abb767bd38c8b633a0bdd4f0cb581dd2ea9 Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Tue, 27 Jun 2023 22:26:21 +0200
+Subject: [PATCH] backport vm_area_struct_has_const_vm_flags changes from
+ 470.199.02
+
+---
+ Makefile               |  1 +
+ conftest.sh            | 19 +++++++++++++++++++
+ nv-linux.h             | 22 ++++++++++++++++++++++
+ nv-mmap.c              | 10 +++++-----
+ uvm/Makefile           |  1 +
+ uvm/nvidia_uvm_linux.h | 22 ++++++++++++++++++++++
+ uvm/nvidia_uvm_lite.c  | 16 ++++++++--------
+ 7 files changed, 78 insertions(+), 13 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 7ce41f8..a17d609 100644
+--- a/Makefile
++++ b/Makefile
+@@ -167,6 +167,7 @@ COMPILE_TESTS = \
+ 	drm_driver_has_gem_prime_callbacks \
+ 	drm_device_has_pdev \
+ 	acpi_bus_get_device \
++	vm_area_struct_has_const_vm_flags \
+ 
+ #
+ # CFLAGS dependent on the type of builds (e.g. single/muliple module, debug)
+diff --git a/conftest.sh b/conftest.sh
+index b54d17e..b1b83d0 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -2562,6 +2562,25 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_ACPI_BUS_GET_DEVICE_PRESENT" "" "functions"
+         ;;
+ 
++        vm_area_struct_has_const_vm_flags)
++            #
++            # Determine if the 'vm_area_struct' structure has
++            # const 'vm_flags'.
++            #
++            # A union of '__vm_flags' and 'const vm_flags' was added 
++            # by commit bc292ab00f6c ("mm: introduce vma->vm_flags
++            # wrapper functions") in mm-stable branch (2023-02-09)
++            # of the akpm/mm maintainer tree.
++            #
++            CODE="
++            #include <linux/mm_types.h>
++            int conftest_vm_area_struct_has_const_vm_flags(void) {
++                return offsetof(struct vm_area_struct, __vm_flags);
++            }"
++
++            compile_check_conftest "$CODE" "NV_VM_AREA_STRUCT_HAS_CONST_VM_FLAGS" "" "types"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+diff --git a/nv-linux.h b/nv-linux.h
+index 49c7973..1c95b1e 100644
+--- a/nv-linux.h
++++ b/nv-linux.h
+@@ -2276,4 +2276,26 @@ static inline NvU64 nv_node_end_pfn(int nid)
+     #endif
+ #endif
+ 
++#if defined(NV_VM_AREA_STRUCT_HAS_CONST_VM_FLAGS)
++static inline void nv_vm_flags_set(struct vm_area_struct *vma, vm_flags_t flags)
++{
++    vm_flags_set(vma, flags);
++}
++
++static inline void nv_vm_flags_clear(struct vm_area_struct *vma, vm_flags_t flags)
++{
++    vm_flags_clear(vma, flags);
++}
++#else
++static inline void nv_vm_flags_set(struct vm_area_struct *vma, unsigned long flags)
++{
++    vma->vm_flags |= flags;
++}
++
++static inline void nv_vm_flags_clear(struct vm_area_struct *vma, unsigned long flags)
++{
++    vma->vm_flags &= ~flags;
++}
++#endif
++
+ #endif  /* _NV_LINUX_H_ */
+diff --git a/nv-mmap.c b/nv-mmap.c
+index fb27c79..473d5fa 100644
+--- a/nv-mmap.c
++++ b/nv-mmap.c
+@@ -312,7 +312,7 @@ int nvidia_mmap(
+             goto done;
+         }
+ 
+-        vma->vm_flags |= VM_IO;
++        nv_vm_flags_set(vma, VM_IO);
+     }
+     else
+     {
+@@ -363,8 +363,8 @@ int nvidia_mmap(
+ 
+         NV_PRINT_AT(NV_DBG_MEMINFO, at);
+ 
+-        vma->vm_flags |= (VM_IO | VM_LOCKED | VM_RESERVED);
+-        vma->vm_flags |= (VM_DONTEXPAND | VM_DONTDUMP);
++        nv_vm_flags_set(vma, VM_IO | VM_LOCKED | VM_RESERVED);
++        nv_vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
+     }
+ 
+     if (status == 0)
+@@ -374,8 +374,8 @@ int nvidia_mmap(
+         if ((prot & NV_PROTECT_WRITEABLE) == 0)
+         {
+             vma->vm_page_prot = NV_PGPROT_READ_ONLY(vma->vm_page_prot);
+-            vma->vm_flags &= ~VM_WRITE;
+-            vma->vm_flags &= ~VM_MAYWRITE;
++            nv_vm_flags_clear(vma, VM_WRITE);
++            nv_vm_flags_clear(vma, VM_MAYWRITE);
+         }
+ 
+         vma->vm_ops = &nv_vm_ops;
+diff --git a/uvm/Makefile b/uvm/Makefile
+index 14cd218..b86e215 100644
+--- a/uvm/Makefile
++++ b/uvm/Makefile
+@@ -175,6 +175,7 @@ COMPILE_TESTS = \
+ 	proc_ops \
+ 	timeval \
+ 	mm_has_mmap_lock \
++	vm_area_struct_has_const_vm_flags \
+ 
+ MODULE_NAME:= nvidia-uvm
+ 
+diff --git a/uvm/nvidia_uvm_linux.h b/uvm/nvidia_uvm_linux.h
+index 9c1c3a8..7dc8847 100644
+--- a/uvm/nvidia_uvm_linux.h
++++ b/uvm/nvidia_uvm_linux.h
+@@ -445,5 +445,27 @@ static inline const char *kbasename(const char *str)
+ #define mmap_sem mmap_lock
+ #endif
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 0, 0)
++typedef unsigned long vm_flags_t;
++#endif
++
++static inline void nv_vm_flags_set(struct vm_area_struct *vma, vm_flags_t flags)
++{
++#if defined(NV_VM_AREA_STRUCT_HAS_CONST_VM_FLAGS)
++    vm_flags_set(vma, flags);
++#else
++    vma->vm_flags |= flags;
++#endif
++}
++
++static inline void nv_vm_flags_clear(struct vm_area_struct *vma, vm_flags_t flags)
++{
++#if defined(NV_VM_AREA_STRUCT_HAS_CONST_VM_FLAGS)
++    vm_flags_clear(vma, flags);
++#else
++    vma->vm_flags &= ~flags;
++#endif
++}
++
+ #endif // _NVIDIA_UVM_LINUX_H
+ 
+diff --git a/uvm/nvidia_uvm_lite.c b/uvm/nvidia_uvm_lite.c
+index c2abbc3..61a2bd9 100644
+--- a/uvm/nvidia_uvm_lite.c
++++ b/uvm/nvidia_uvm_lite.c
+@@ -1537,9 +1537,9 @@ static int uvmlite_mmap(struct file * filp, struct vm_area_struct * vma)
+         vma->vm_ops   = &uvmlite_vma_ops;
+ 
+         // Prohibit copying the vma on fork().
+-        vma->vm_flags |= VM_DONTCOPY;
++        nv_vm_flags_set(vma, VM_DONTCOPY);
+         // Prohibt mremap() that would expand the vma.
+-        vma->vm_flags |= VM_DONTEXPAND;
++        nv_vm_flags_set(vma, VM_DONTEXPAND);
+ 
+         // Other cases of vma modification are detected in _mmap_open().
+ 
+@@ -1558,9 +1558,9 @@ static int uvmlite_mmap(struct file * filp, struct vm_area_struct * vma)
+             return -EINVAL;
+ 
+         vma->vm_ops = &counters_vma_ops;
+-        vma->vm_flags &= ~VM_MAYWRITE;
++        nv_vm_flags_clear(vma, VM_MAYWRITE);
+         // prevent vm_insert_page from modifying the vma's flags:
+-        vma->vm_flags |= VM_MIXEDMAP;
++        nv_vm_flags_set(vma, VM_MIXEDMAP);
+         ret = 0;
+     }
+     UVM_DBG_PRINT_RL("vma 0x%p [0x%p, 0x%p) ret %d pgoff"
+@@ -2539,8 +2539,8 @@ static void _set_vma_inaccessible(struct vm_area_struct * vma)
+     // Subsequent access from userspace after the pages are unmapped will cause
+     // a SIGSEGV.
+     //
+-    vma->vm_flags &= ~(VM_READ|VM_MAYREAD);
+-    vma->vm_flags &= ~(VM_WRITE|VM_MAYWRITE);
++    nv_vm_flags_clear(vma, VM_READ|VM_MAYREAD);
++    nv_vm_flags_clear(vma, VM_WRITE|VM_MAYWRITE);
+ }
+ 
+ //
+@@ -2548,8 +2548,8 @@ static void _set_vma_inaccessible(struct vm_area_struct * vma)
+ //
+ static void _set_vma_accessible(struct vm_area_struct * vma)
+ {
+-    vma->vm_flags |= (VM_READ|VM_MAYREAD);
+-    vma->vm_flags |= (VM_WRITE|VM_MAYWRITE);
++    nv_vm_flags_set(vma, VM_READ|VM_MAYREAD);
++    nv_vm_flags_set(vma, VM_WRITE|VM_MAYWRITE);
+ }
+ 
+ //
+-- 
+2.20.1
+

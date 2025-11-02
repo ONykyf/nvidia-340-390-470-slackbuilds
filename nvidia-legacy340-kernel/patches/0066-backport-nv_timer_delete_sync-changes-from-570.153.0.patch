@@ -1,0 +1,65 @@
+From 66e48284e8a72eef1c9b4c041b68e10bcbb9e35b Mon Sep 17 00:00:00 2001
+From: Andreas Beckmann <anbe@debian.org>
+Date: Mon, 26 May 2025 09:58:49 +0200
+Subject: [PATCH] backport nv_timer_delete_sync changes from 570.153.02
+
+---
+ nv-time.h | 15 +++++++++++++++
+ nv.c      |  3 ++-
+ 2 files changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/nv-time.h b/nv-time.h
+index c6f619c3..d283dee0 100644
+--- a/nv-time.h
++++ b/nv-time.h
+@@ -28,6 +28,12 @@
+ #include <linux/ktime.h>
+ #endif
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 2, 0)
++#define NV_IS_EXPORT_SYMBOL_PRESENT_timer_delete_sync 1
++#else
++#define NV_IS_EXPORT_SYMBOL_PRESENT_timer_delete_sync 0
++#endif
++
+ #if defined (NV_TIMEVAL_PRESENT)
+ typedef struct timeval nv_timeval; 
+ #else
+@@ -50,4 +56,13 @@ static inline void nv_gettimeofday(nv_timeval *tv)
+ #endif // NV_DO_GETTIMEOFDAY_PRESENT
+ }
+ 
++static inline void nv_timer_delete_sync(struct timer_list *timer)
++{
++#if !defined(NV_BSD) && NV_IS_EXPORT_SYMBOL_PRESENT_timer_delete_sync
++    timer_delete_sync(timer);
++#else
++    del_timer_sync(timer);
++#endif
++}
++
+ #endif // __NV_TIME_H__
+diff --git a/nv.c b/nv.c
+index 35307eec..7f846764 100644
+--- a/nv.c
++++ b/nv.c
+@@ -15,6 +15,7 @@
+ #include "nv-reg.h"
+ #include "rmil.h"
+ #include "nv-pat.h"
++#include "nv-time.h"
+ 
+ #if defined(NV_UVM_ENABLE) || defined(NV_UVM_NEXT_ENABLE)
+ #include "nv_uvm_interface.h"
+@@ -2456,7 +2457,7 @@ int NV_API_CALL nv_stop_rc_timer(
+ 
+     nv_printf(NV_DBG_INFO, "NVRM: stopping rc timer\n");
+     nv->rc_timer_enabled = 0;
+-    del_timer_sync(&nvl->rc_timer);
++    nv_timer_delete_sync(&nvl->rc_timer);
+     nv_printf(NV_DBG_INFO, "NVRM: rc timer stopped\n");
+ 
+     return 0;
+-- 
+2.39.5
+

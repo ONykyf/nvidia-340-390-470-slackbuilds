@@ -28,8 +28,8 @@ cd $(dirname $0) ; CWD=$(pwd)
 
 PRGNAM=nvidia-legacy470-driver
 VERSION=${VERSION:-470.256.02}
-BUILD=${BUILD:-3}
-TAG=${TAG:-_SBo}
+BUILD=${BUILD:-1}
+TAG=${TAG:-_Nyk}
 PKGTYPE=${PKGTYPE:-tgz}
 
 set -e
@@ -42,7 +42,7 @@ if [ -z "$ARCH" ]; then
   esac
 fi
 
-TMP=${TMP:-/tmp/SBo}
+TMP=${TMP:-/tmp/Nyk}
 PKG=$TMP/package-$PRGNAM
 OUTPUT=${OUTPUT:-/tmp}
 
@@ -292,10 +292,10 @@ rm -rf $PKG/usr/share/man
 mv $PKG/usr/share/doc/NVIDIA_GLX-1.0 $PKG/usr/doc/$PRGNAM-$VERSION
 rm -rf $PKG/usr/share/doc
 cp -a LICENSE NVIDIA_Changelog README.txt $PKG/usr/doc/$PRGNAM-$VERSION
-cat $CWD/README470 > $PKG/usr/doc/$PRGNAM-$VERSION/README.Slackware
+cat $CWD/README > $PKG/usr/doc/$PRGNAM-$VERSION/README.Slackware
 cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
 
-sed "s/PKGVERSION/$VERSION/g" $CWD/slack-desc470 > $PKG/install/slack-desc
+sed "s/PKGVERSION/$VERSION/g" $CWD/slack-desc > $PKG/install/slack-desc
 if [ "$COMPAT32" = "yes" ]; then
    sed -i "s|nvidia-driver: @MULTILIB@|nvidia-driver: This package includes the 32-bit libraries.|" $PKG/install/slack-desc
 else

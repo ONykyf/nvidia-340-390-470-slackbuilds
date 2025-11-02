@@ -1,0 +1,70 @@
+This is the proprietary binary video driver from NVidia for the XLibre
+X-server. This package does not include the kernel-modules - they are
+a part of the nvidia-legacy470-kernel kernel package.
+
+NOTE: 64-bit x86_64 support ONLY for Slackware64. For x86 32-bit
+support, use nvidia-legacy390-{driver,kernel}
+
+The Wine libraries are now installed by default.  To disable, pass
+  WINE="no" to the script.
+
+Installing the 32-bit compatibility libraries is available:
+if desired, do:
+
+  COMPAT32="yes" ./nvidia-legacy470-driver.SlackBuild
+
+This script now gives the option of installing the nvidia-persistenced
+daemon.  For details, see README.nvidia-persistenced.
+
+Several useful utilities are included: nvidia-xsettings, nvidia-smi,
+and nvidia-settings.  Please refer to the Nvidia documentation and
+man pages for details and usage.
+
+For CUDA/OpenCL to work after reboot, and for utilites such as
+nvidia-smi, you might need to include the following line in your
+/etc/rc.d/rc.local:
+(This is required if you plan on running nvidia-persistenced)
+
+    # Create missing nvidia device nodes after reboot
+    /usr/bin/nvidia-modprobe -c 0 -u
+
+NOTES:
+This nvidia-legacy470-driver DOES NOT conflict with open source drivers
+and libraries of XLibre, if proper /usr/share/X11/xorg.conf.d/10-nvidia.conf
+file, which is included, is installed.
+
+You DON'T need to blacklist nouveau in /etc/modprobe.d/*. If there is a file
+that contains a line 'blacklist nouveau', remove it.
+
+Moreover, you can choose nvidia or nouveau kernel/X drivers at boot time
+by blacklisting unneeded modules and loading an initrd image with necesssary
+ones. The nvidia-kernel package installs /usr/sbin/nvidia-prepare-boot script
+and runs it right at installation, although you can run it any time as root
+to regenerate /boot/initrd-${KERNEL}.img (with a nouveau kernel module) and
+/boot/initrd-${KERNEL}-nvidia.img (with nvidia kernel modules). Additionally,
+it creates an /etc/lilo.conf.nvidia-${KERNEL} snippet that looks like this:
+
+# Linux bootable partition config begins
+image = /boot/vmlinuz-6.12.6
+  root = /dev/sda9
+  label = Linux-6.12.6-nvi
+  read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-6.12.6-nvidia.img
+  append = " module_blacklist=nouveau nvidia.modeset=1"
+# Linux bootable partition config ends
+# Linux bootable partition config begins
+image = /boot/vmlinuz-6.12.6
+  root = /dev/sda9
+  label = Linux-6.12.6-nou
+  read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-6.12.6.img
+  append = " module_blacklist=nvidia,nvidia_drm,nvidia_uvm,nvidia_modeset"
+# Linux bootable partition config ends
+
+You can add it (edited if you like) to /etc/lilo.conf to choose at boot
+which drivers to use. This adds an additional safety margin in case
+something goes wrong after an upgrade or an experiment. If you use, say,
+GRUB2 instead of LILO, you can take kernel options from here to use
+in grub.cfg.
+
+Tested with linux kernels up to 6.17.6.

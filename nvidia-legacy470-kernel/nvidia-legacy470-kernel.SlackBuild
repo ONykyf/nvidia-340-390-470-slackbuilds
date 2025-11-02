@@ -5,6 +5,7 @@
 # Copyright 2007-2011 Heinz Wiesinger, Amsterdam, The Netherlands
 # Copyright 2012-2019 Edward W. Koenig, Vancouver, WA, USA
 # Copyright 2020-2024 Lenard Spencer, Orlando, FL, USA
+# Copyright 2025 Oleh Nykyforchyn, Ivano-Frankivsk, Ukraine
 # All rights reserved.
 #
 # Redistribution and use of this script, with or without modification, is
@@ -32,12 +33,13 @@ cd $(dirname $0) ; CWD=$(pwd)
 
 PRGNAM=nvidia-legacy470-kernel
 VERSION=${VERSION:-470.256.02}
-BUILD=${BUILD:-6}
-TAG=${TAG:-_SBo}
+BUILD=${BUILD:-1}
+TAG=${TAG:-_Nyk}
 PKGTYPE=${PKGTYPE:-tgz}
 
 KERNEL=${KERNEL:-$(uname -r)}
 KERNELPATH=${KERNELPATH:-/lib/modules/${KERNEL}/build}
+KERNELMAJOR=`echo $KERNEL | cut -f 1 -d '.'`
 
 set -e
 
@@ -68,7 +70,7 @@ fi
 
 SRCNAM=NVIDIA-Linux-$TARGET-${VERSION}
 
-TMP=${TMP:-/tmp/SBo}
+TMP=${TMP:-/tmp/Nyk}
 PKG=$TMP/package-$PRGNAM
 OUTPUT=${OUTPUT:-/tmp}
 
@@ -92,34 +94,17 @@ find -L . \
 
   unset ARCH
 
-CURRENT=${CURRENT:-yes}
-if [  "${KERNEL615:-no}" = "yes" ]; then
-# Force CURRENT and KERNEL614 to yes
-  KERNEL614=yes
-  CURRENT=yes
-fi
-if [  "${KERNEL614:-no}" = "yes" ]; then
-# Force CURRENT to yes
-  CURRENT=yes
-fi
-
 # Patches for -current:
-if [ "${CURRENT}" = "yes" ]; then
+if [ "$KERNELMAJOR" == "6" ]; then
   patch -p1 < $CWD/patches/nvidia-legacy470-gcc14.patch
   patch -p1 < $CWD/patches/nvidia-legacy470-iosys_map.patch
   patch -p1 < $CWD/patches/nvidia-legacy470-follow_pfn.patch
   patch -p1 < $CWD/patches/nvidia-470xx-fix-linux-6.12.patch
   patch -p1 < $CWD/patches/nvidia-470xx-fix-gcc-15.patch
-fi
-# Patch for 6.13.x:
-if [ "${KERNEL614}" = "yes" ]; then
   patch -p1 < $CWD/patches/nvidia-470xx-fix-linux-6.13.patch
-# Patch for 6.14.x:
   patch -p1 < $CWD/patches/kernel-6.14.patch
-fi
-# Patch for 6.15.x:
-if [ "${KERNEL615}" = "yes" ]; then
   patch -p1 < $CWD/patches/nvidia-470xx-fix-linux-6.15.patch
+  patch -p1 < $CWD/patches/kernel-6.17.patch
 fi
 # CC=${CC:-gcc} suppresses an otherwise harmless "compiler mismatch"
 # message.  If you custom-build your kernel with clang,
@@ -136,6 +121,9 @@ install -m 0664 kernel/nvidia-uvm.ko $PKG/lib/modules/$KERNEL/kernel/drivers/vid
 mkdir -p $PKG/usr/doc/$PRGNAM-$PKGVER
 cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$PKGVER/$PRGNAM.SlackBuild
 
+mkdir -p $PKG/usr/sbin
+install -m 700 $CWD/nvidia-prepare-boot $PKG/usr/sbin/
+
 mkdir -p $PKG/install
 cat $CWD/slack-desc > $PKG/install/slack-desc
 sed "s%@KERNEL@%$KERNEL%" $CWD/doinst.sh > $PKG/install/doinst.sh
@@ -144,4 +132,3 @@ cd $PKG
 /sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-$BUILD$TAG.$PKGTYPE
 mv $OUTPUT/$PRGNAM-$PKGVER-$ARCH-$BUILD$TAG.$PKGTYPE $CWD/
 )  2>&1 | tee $CWD/$PRGNAM-$PKGVER-$ARCH-$BUILD$TAG.log
-

@@ -1,90 +1,105 @@
-# nvidia390 and nvidia470 slackbuilds for XLibre
+# nvidia-340-390-470-slackbuilds
 
-Slackbuilds for proprietary nVidia kernel modules, X driver, and utilities, versions 390 (for Fermi cards) and 470 (for Kepler cards)
+SlackBuilds with the necessary sources to build legacy NVidia drivers (kernel modules, X drivers, and nvidia utilities) versions 340 (for Tesla cards), 390 (for Fermi cards), and 470 (for Kepler cards) for use with XLibre xserver
 
-These are slightly changed versions from slackbuilds.org, so credits go to Heinz Wiesinger, Edward W. Koenig, and Lenard Spencer, who are the authors of the original scripts.
+## Objectives
 
-## Changes:
+- To allow a user to install NVidia drivers on systems with recent Linux kernels (tested up to 6.17.6) so that they "just work", with little to no manual intervention;
 
-- Adapted to build for XLibre, although should also work for X.Org, if the default `--x-module-path` is changed back from `/usr/lib??/xorg/modules/xlibre-25.0` to `/usr/lib??/xorg/modules/`
+- To install proprietary modules and libraries in a dedicated directory `/usr/{lib,lib64}/nvidia` so that they do not overwrite open versions from XLibre, Mesa, libglvnd etc;
 
-- Patches from AUR added to compile and work with recent kernels
+- To keep `nouveau` kernel and X drivers so that a user is able to choose between them and `nvidia` at boot time, which increases safety (it's almost impossible for both open and proprietary drivers to break simultaneously).
 
-- Logs are written to the respective directories and packages built are put there
+## Source
+
+Build scripts from slackbuilds.org have been modified, so credits go to Heinz Wiesinger, Edward W. Koenig, and Lenard Spencer who are the authors of the original scripts.
+
+Tags `SBo` are changed to `Nyk` to emphasize that slackbuilds.org is not responsible for these packages.
+
+The packages for nvidia340 at slackbuilds.org are abandoned now, so patches for it are mostly taken from the Andreas Beckmann's Debian package. He does great job of backporting new features from more recent drivers and adapting the code to changes in Linux kernels.
 
 ## Prerequisites:
 
-- You should either have XLibre with `IgnoreABI` and `Module` support in `OutputClass` and `TimerForce()` function reexported (get it at https://github.com/ONykyf/X11Libre-SlackBuild until these changes are merged into a stable version), or (in particular, for X.Org) put `IgnoreABI` option in `ServerFlags` (read `10-nvidia.conf` for details) and change the default nvidia graphic modules path from `/usr/lib??/nvidia/xorg/` to `/usr/lib??/xorg/modules/` (but You will not be able to use proprietary and open drivers simultaneously on a multiseat system)
+It is assumed that you use the XLibre version for Slackware provided at https://github.com/ONykyf/X11Libre-SlackBuild, which contains PRs not yet merged into XLibre master. They allow to set `IgnoreABI` and `ModulePath`s 
+for specific `Driver`s and `Module`s, and to enable them only if a DRM device driven by `nvidia-drm` is detected.
 
-- parameters `nvidia-drm.modeset=1` and `module_blacklist=nouveau` must be passed to kernel through GRUB, LILO, or whatever you use to boot Linux
+## How to download
 
-- instead of the latter parameter, the `nouveau` kernel driver can be blacklisted by adding `/etc/modprobe.d/BLACKLIST-nouveau.conf` to your system
-
-- `nvidia.ko`, `nvidia-drm.ko`, `nvidia-uvm.ko`, and `nvidia-modeset.ko` should be in initrd to be inserted at early boot
-
-## nvidia470
-
-NVidia installer for 470 is too large (approx. 250 Mb) to store it here, but `get_NVIDIA-Linux-x86_64-470.256.02.run.sh` will download it for You.
-
-You have to run the kernel package build script as
+Clone the repository with Git like so:
 ```
-KERNEL614=yes ./nvidia-legacy470-kernel.SlackBuild
+git clone https://github.com/ONykyf/nvidia-340-390-470-slackbuilds.git
+cd nvidia-340-390-470-slackbuilds
 ```
-or
-```
-KERNEL615=yes ./nvidia-legacy470-kernel.SlackBuild
-```
-if You have linux-6.14 or linux-6.15 kernel respectively, then additional patches will be applied.
+Using this method gives you the opportunity to later simply update the repository by running git pull. Please be advised that the initial download of the Git repository is about 600 MB.
 
+## How to build and install
 
-## How to avoid risk
+Just run `nvidia-legacy${VERSION}-kernel.SlackBuild` and `nvidia-legacy${VERSION}-driver.SlackBuild` in the respective directories for the VERSION you need, and install the obtained packages.
 
-You can preserve the possibility to choose between `nvidia` and `nouveau` drivers at boot time. See the following excerpt from `lilo.conf` (for GRUB it requires a little more hacking):
+Observe that *.run installers from NVidia are one level up in the directory hierarchy to save space. Files for 340 and 390 are included, but the installer for 470 is not because of its size (266455K). The script `get_NVIDIA-Linux-x86_64-470.256.02.run.sh` will download it for you.
+
+The created packages and build logs are put alongside the build scripts (not in `/tmp` or wherever). You can move them to another place to keep the cloned repository intact and not to lose the build packages in case of the repository update.
+
+Note that `nvidia-legacy${VERSION}-driver.tgz` is common, but `nvidia-legacy${VERSION}-kernel.tgz` should be built and installed for all kernels you have (boot each kernel and re-run the build script).
+
+After the installation for 390 and 470 versions (but not for 340) you will get `/boot/initrd-${KERNEL}.img` and `/boot/initrd-${KERNEL}-nvidia.img` initramfs images that should be loaded at early boot. To simplify this, an `/etc/lilo.conf.nvidia-${KERNEL}` snippet is generated simultaneously, which looks like this:
 ```
 # Linux bootable partition config begins
-image = /boot/vmlinuz-6.14.0-rc3
-  initrd = /boot/initrd-6.14.0-rc3-nvidia.img
-  append = " nvidia_drm.modeset=1 module_blacklist=nouveau,nouveaufb"
-  root = /dev/sda1
-  label = Slackware-15.0+
+image = /boot/vmlinuz-6.12.6
+  root = /dev/sda9
+  label = Linux-6.12.6-nvi
   read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-6.12.6-nvidia.img
+  append = " module_blacklist=nouveau nvidia.modeset=1"
 # Linux bootable partition config ends
 # Linux bootable partition config begins
-image = /boot/vmlinuz-6.14.0-rc3
-  initrd = /boot/initrd-6.14.0-rc3.img
+image = /boot/vmlinuz-6.12.6
+  root = /dev/sda9
+  label = Linux-6.12.6-nou
+  read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-6.12.6.img
   append = " module_blacklist=nvidia,nvidia_drm,nvidia_uvm,nvidia_modeset"
-  root = /dev/sda1
-  label = Slackware-15.0-
-  read-only  # Partitions should be mounted read-only for checking
 # Linux bootable partition config ends
 ```
-Clearly `initrd-6.14.0-rc3-nvidia.img` contains `nvidia,nvidia_drm,nvidia_uvm,nvidia_modeset` kernel modules and `initrd-6.14.0-rc3.img` does not contain them.
 
+Note that `ldconfig` by default clears `/boot/initrd-${KERNEL}-nvidia.img` as "orphaned", e.g., when a new kernel is installed. Then running `nvidia-prepare-boot` (and `lilo`, if used) restores the correct initrd images.
+
+For nvidia340 a special initrd image is not necessary, and `/etc/lilo.conf.nvidia-${KERNEL}` looks simpler:
+```
+# Linux bootable partition config begins
+image = /boot/vmlinuz-6.17.6
+  root = /dev/sda3
+  label = Linux-6.17.6-nvi
+  read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-6.17.6.img
+  append = " module_blacklist=nouveau"
+# Linux bootable partition config ends
+# Linux bootable partition config begins
+image = /boot/vmlinuz-6.17.6
+  root = /dev/sda3
+  label = Linux-6.17.6-nou
+  read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-6.17.6.img
+  append = " module_blacklist=nvidia,nvidia_uvm"
+# Linux bootable partition config ends
+```
+
+You can add it (edited if you like) to `/etc/lilo.conf` to choose at boot
+which drivers to use. This adds an additional safety margin in case
+something goes wrong after an upgrade or an experiment. If you use, say,
+GRUB2 instead of LILO, you can take kernel options from here to use
+in `grub.cfg`.
+
+*Important note:* you DON'T need to blacklist nouveau in `/etc/modprobe.d/*`. If there is a file that contains a line 'blacklist nouveau', remove it, or unistall `xf86-video-nouveau-blacklist-1.0-noarch-1.txz` package if it has been installed.
 
 ## Status and caveats
 
-There is a warning about "tainted kernel" in `dmesg` output.
+There is a warning about "tainted kernel" in `dmesg` output.
 
-When a framebuffer for the second (integrated) intel card starts to initialize after nvidia gets initialized, the text console gets black and returns only before X is started. This pause is long (ca 30 seconds) on a box with an RTL8211E Gigabit Ethernet adapter, probably because of entropy starvation when `r8169` is started, and is not related to graphics. 
+When Xserver is started, `nvidia-drm` for nvidia 390 complains about failure to grab drm device ownership, which is a long-term issue for NVidia and can be safely ignored.
+After that, the nvidia legacy drivers work nice, much better that nouveau (no lags, picture and fonts are clearer).
 
-When Xserver is started, `nvidia-drm` complains about failure to grab drm device ownership, which is a long-term issue for NVidia:
-```
-[   22.205067] RPL Segment Routing with IPv6
-[   22.205090] In-situ OAM (IOAM) with IPv6
-[   35.776277] RTL8211E Gigabit Ethernet r8169-0-300:00: attached PHY driver (mii_bus:phy_addr=r8169-0-300:00, irq=MAC)
-[   35.982801] r8169 0000:03:00.0 eth0: Link is Down
-[   38.094386] r8169 0000:03:00.0 eth0: Link is Up - 1Gbps/Full - flow control rx/tx
-[   38.526457] 8021q: 802.1Q VLAN Support v1.8
-[   38.906403] cfg80211: Loading compiled-in X.509 certificates for regulatory database
-[   38.906624] Loaded X.509 cert sforshee: 00b28ddf47aef9cea7
-[   38.906804] Loaded X.509 cert wens: 61c038651aabdcf94bd0ac7ff06c7248db18c600
-[   39.677561] NET: Registered PF_QIPCRTR protocol family
-[   70.657424] [drm:drm_new_set_master [drm]] *ERROR* [nvidia-drm] [GPU ID 0x00000100] Failed to grab modeset ownership
-[   82.852261] CIFS: Attempting to mount //nigga/family-homes-write
-[   83.284368] CIFS: SMB3.11 POSIX Extensions are experimental
-```
-
-After X session is started, the nvidia390 and nvidia470 drivers work nice, much better that nouveau (no lags, picture and fonts are clearer). Note that if You have an integrated card and want it to work alongside with nVidia at a separate seat (as i have Intel),
+Note that if You have an integrated card and want it to work alongside with nVidia at a separate seat (as i have Intel),
 then the second X instance for it should be run with `-modulepath /usr/lib64/xorg/modules` command-line option, or OutputClass like
 ```
 Section "OutputClass"
@@ -94,6 +109,18 @@ Section "OutputClass"
     ModulePath     ""
 EndSection
 ```
-must be applied to the respective server layout, to prevent loading the GLX library shipped with nvidia390 instead of the XOrg stock version. This way You obtain different GLX realizations working at different seats.
+must be applied to the respective server layout, to prevent loading the GLX library shipped with nvidia instead of the XLibre stock version. This way You obtain different GLX realizations working at different seats.
+When a framebuffer for my second (integrated) intel card starts to initialize after nvidia gets initialized, the text console gets black and returns only before X is started. This pause is long (ca 30 seconds) on a box with an RTL8211E Gigabit Ethernet adapter, probably because of entropy starvation when `r8169` is started, and is not related to graphics. 
 
 
+## NVidia 340 specific notes
+
+The nvidia 340 driver is not GLVND capable and its installer tries to replace some OpenGL-related libraries with its own version. This makes `nouveau` drivers not work and should be prevented.
+Hence the legacy libraries are moved to `/usr/{lib,lib64}/nvidia`, and the package installs a script `/etc/rc.d/rc.nvidia340` that changes soft links to `libGL`, `libEGL`, `libGLESv1_CM`,
+`libGLESv2`, and `libOpenCL` between NVidia and system-wide libraries depending on whether `nvidia-drm` driver has been loaded at startup.
+
+This driver provides OpenGL ES 2.0 only, which is insufficient for GTK4. Use a workaround like
+```
+GSK_RENDERER=cairo pavucontrol
+```
+to run GTK4 applications.

@@ -12,16 +12,17 @@ SlackBuilds with the necessary sources to build legacy NVidia drivers (kernel mo
 
 ## Source
 
-Build scripts from slackbuilds.org have been modified, so credits go to Heinz Wiesinger, Edward W. Koenig, and Lenard Spencer who are the authors of the original scripts.
+Build scripts from [slackbuilds.org](https://slackbuilds.org/result/?search=nvidia-legacy&sv=15.0) have been modified, so credits go to Heinz Wiesinger, Edward W. Koenig, and Lenard Spencer who are the authors of the original scripts.
 
-Tags `SBo` are changed to `Nyk` to emphasize that slackbuilds.org is not responsible for these packages.
+Tags `SBo` are changed to `Nyk` to emphasize that [slackbuilds.org](https://slackbuilds.org/result/?search=nvidia-legacy&sv=15.0) is not responsible for these packages.
 
-The packages for nvidia340 at slackbuilds.org are abandoned now, so patches for it are mostly taken from the Andreas Beckmann's Debian package. He does great job of backporting new features from more recent drivers and adapting the code to changes in Linux kernels.
+The packages for nvidia340 at slackbuilds.org are [abandoned now](https://slackbuilds.org/repository/15.0/system/nvidia-legacy340-driver/), so patches for it are mostly taken from the Andreas Beckmann's [Debian package](https://packages.debian.org/source/sid/nvidia-graphics-drivers-legacy-340xx). He does great job of backporting new features from more recent drivers and adapting the code to changes in Linux kernels.
 
 ## Prerequisites
 
 It is assumed that you use the XLibre version for Slackware provided at [https://github.com/ONykyf/X11Libre-SlackBuild](https://github.com/ONykyf/X11Libre-SlackBuild), which contains PRs not yet merged into XLibre master.
 They allow to set `IgnoreABI` and `ModulePath`s for specific `Driver`s and `Module`s, and to enable them only if a DRM device driven by `nvidia-drm` is detected.
+Then a specially crafted `OutputClass` in `/usr/share/X11/xorg.conf.d/10-nvidia.conf` (which is an enhanced version of a similar file used in XOrg) does the trick.
 
 ## How to download
 
@@ -118,6 +119,8 @@ When a framebuffer for my second (integrated) intel card starts to initialize af
 The nvidia 340 driver is not GLVND capable and its installer tries to replace some OpenGL-related libraries with its own versions. This makes `nouveau` drivers not work and should be prevented.
 Hence the legacy libraries are moved to `/usr/{lib,lib64}/nvidia`, and the package installs a script `/etc/rc.d/rc.nvidia340` that changes soft links to `libGL`, `libEGL`, `libGLESv1_CM`,
 `libGLESv2`, and `libOpenCL` between NVidia and system-wide libraries depending on whether `nvidia.ko` kernel module has been loaded at startup. If `ldconfig` without arguments is run, e.g., from an installation script, then the soft links are "corrected", and you temporarily lose OpenGL for `nvidia`. Then reboot a computer or run `/etc/rc.d/rc.nvidia340` as root.
+
+These limitations also make Tesla cards with the nvidia 340 driver an inappropriate choice for multiseat together with non-NVidia cards, but such use can hardly be imagined for this legacy hardware (and I'd suppose that it has never been used this way). For a single seat (with one or more monitors) nvidia 340 works well enough. 
 
 This driver provides OpenGL ES 2.0 only, which is insufficient for GTK4. Use a workaround like
 ```

@@ -1,0 +1,16 @@
+# Linux bootable partition config begins
+image = /boot/vmlinuz-6.12.6
+  root = /dev/sda9
+  label = Linux-6.12.6-nvi
+  read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-6.12.6-nvidia.img
+  append = " module_blacklist=nouveau nvidia.modeset=1"
+# Linux bootable partition config ends
+# Linux bootable partition config begins
+image = /boot/vmlinuz-6.12.6
+  root = /dev/sda9
+  label = Linux-6.12.6-nou
+  read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-6.12.6.img
+  append = " module_blacklist=nvidia,nvidia_drm,nvidia_uvm,nvidia_modeset"
+# Linux bootable partition config ends

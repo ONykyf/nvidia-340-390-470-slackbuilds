@@ -1,0 +1,500 @@
+Creating directory NVIDIA-Linux-x86_64-390.157
+Verifying archive integrity... OK
+Uncompressing NVIDIA Accelerated Graphics Driver for Linux-x86_64 390.157...................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+nvidia-persistenced-init/README
+nvidia-persistenced-init/install.sh
+nvidia-persistenced-init/systemd/nvidia-persistenced.service.template
+nvidia-persistenced-init/sysv/nvidia-persistenced.template
+nvidia-persistenced-init/upstart/nvidia-persistenced.conf.template
+patching file kernel/common/inc/nv-linux.h
+patching file kernel/conftest.sh
+Hunk #1 succeeded at 2074 (offset 18 lines).
+patching file kernel/nvidia-drm/nvidia-drm-connector.c
+patching file kernel/nvidia-drm/nvidia-drm-drv.c
+Hunk #2 succeeded at 240 with fuzz 2 (offset -1 lines).
+patching file kernel/nvidia/nv-acpi.c
+Hunk #1 succeeded at 8 with fuzz 1.
+Hunk #2 succeeded at 24 (offset -1 lines).
+Hunk #3 succeeded at 77 with fuzz 1 (offset -7 lines).
+Hunk #4 succeeded at 338 (offset -11 lines).
+Hunk #5 succeeded at 395 with fuzz 1 (offset -11 lines).
+patching file kernel/common/inc/nv-linux.h
+patching file kernel/nvidia-drm/nvidia-drm-fb.c
+patching file kernel/nvidia-uvm/uvm8.c
+patching file kernel/nvidia/nv-mmap.c
+patching file kernel/nvidia-drm/nvidia-drm-drv.c
+patching file kernel/common/inc/nv-mm.h
+patching file kernel/nvidia-drm/nvidia-drm-drv.c
+patching file kernel/nvidia-drm/nvidia-drm-drv.c
+patching file kernel/conftest.sh
+patching file kernel/conftest.sh
+patching file kernel/nvidia/nvidia.Kbuild
+patching file kernel/nvidia/os-mlock.c
+patching file kernel/nvidia-drm/nvidia-drm-drv.c
+patching file kernel/nvidia-modeset/nvidia-modeset.Kbuild
+patching file kernel/nvidia/nvidia.Kbuild
+patching file kernel/nvidia-drm/nvidia-drm-drv.c
+patching file kernel/Kbuild
+patching file kernel/conftest.sh
+patching file kernel/Kbuild
+patching file kernel/common/inc/nv-mm.h
+patching file kernel/common/inc/nv-timer.h
+patching file kernel/nvidia-drm/nvidia-drm-connector.c
+patching file kernel/nvidia-drm/nvidia-drm-linux.c
+patching file kernel/nvidia-modeset/nvidia-modeset-linux.c
+patching file kernel/nvidia-uvm/uvm8.c
+patching file kernel/nvidia/nv-frontend.c
+patching file kernel/nvidia/nv-mmap.c
+patching file kernel/nvidia/nv.c
+patching file kernel/common/inc/nv-memdbg.h
+patching file kernel/nvidia/nv.c
+patching file kernel/nvidia-drm/nvidia-drm-drv.c
+patching file kernel/nvidia-drm/nvidia-drm-fb.c
+patching file kernel/nvidia-drm/nvidia-drm-fb.h
+make[1]: входимо до каталогу «/usr/src/linux-6.17.6»
+make[2]: входимо до каталогу «/tmp/Nyk/NVIDIA-Linux-x86_64-390.157/kernel»
+ CONFTEST: INIT_WORK
+ CONFTEST: remap_pfn_range
+ CONFTEST: hash__remap_4k_pfn
+ CONFTEST: follow_pfn
+ CONFTEST: vmap
+ CONFTEST: set_pages_uc
+ CONFTEST: list_is_first
+ CONFTEST: set_memory_uc
+ CONFTEST: set_memory_array_uc
+ CONFTEST: change_page_attr
+ CONFTEST: pci_get_class
+ CONFTEST: pci_choose_state
+ CONFTEST: vm_insert_page
+ CONFTEST: acpi_device_id
+ CONFTEST: acquire_console_sem
+ CONFTEST: console_lock
+ CONFTEST: kmem_cache_create
+ CONFTEST: on_each_cpu
+ CONFTEST: smp_call_function
+ CONFTEST: acpi_evaluate_integer
+ CONFTEST: ioremap_cache
+ CONFTEST: ioremap_wc
+ CONFTEST: acpi_walk_namespace
+ CONFTEST: pci_domain_nr
+ CONFTEST: dma_mapping_error
+ CONFTEST: sg_alloc_table
+ CONFTEST: sg_init_table
+ CONFTEST: pci_get_domain_bus_and_slot
+ CONFTEST: get_num_physpages
+ CONFTEST: efi_enabled
+ CONFTEST: proc_create_data
+ CONFTEST: pde_data
+ CONFTEST: PDE_DATA
+ CONFTEST: proc_remove
+ CONFTEST: pm_vt_switch_required
+ CONFTEST: xen_ioemu_inject_msi
+ CONFTEST: phys_to_dma
+ CONFTEST: get_dma_ops
+ CONFTEST: write_cr4
+ CONFTEST: of_get_property
+ CONFTEST: of_find_node_by_phandle
+ CONFTEST: of_node_to_nid
+ CONFTEST: pnv_pci_get_npu_dev
+ CONFTEST: for_each_online_node
+ CONFTEST: node_end_pfn
+ CONFTEST: pci_bus_address
+ CONFTEST: pci_stop_and_remove_bus_device
+ CONFTEST: pci_remove_bus_device
+ CONFTEST: request_threaded_irq
+ CONFTEST: register_cpu_notifier
+ CONFTEST: cpuhp_setup_state
+ CONFTEST: dma_map_resource
+ CONFTEST: backlight_device_register
+ CONFTEST: register_acpi_notifier
+ CONFTEST: timer_setup
+ CONFTEST: kmem_cache_create_usercopy
+ CONFTEST: do_gettimeofday
+ CONFTEST: dma_direct_map_resource
+ CONFTEST: vmf_insert_pfn
+ CONFTEST: jiffies_to_timespec
+ CONFTEST: ktime_get_raw_ts64
+ CONFTEST: ktime_get_real_ts64
+ CONFTEST: ioremap_nocache
+ CONFTEST: vga_tryget
+ CONFTEST: acpi_bus_get_device
+ CONFTEST: acpi_video_backlight_use_native
+ CONFTEST: remap_page_range
+ CONFTEST: address_space_init_once
+ CONFTEST: kbasename
+ CONFTEST: fatal_signal_pending
+ CONFTEST: list_cut_position
+ CONFTEST: vzalloc
+ CONFTEST: wait_on_bit_lock_argument_count
+ CONFTEST: bitmap_clear
+ CONFTEST: usleep_range
+ CONFTEST: radix_tree_empty
+ CONFTEST: radix_tree_replace_slot
+ CONFTEST: drm_dev_unref
+ CONFTEST: drm_reinit_primary_mode_group
+ CONFTEST: get_user_pages_remote
+ CONFTEST: get_user_pages
+ CONFTEST: drm_gem_object_lookup
+ CONFTEST: drm_atomic_state_ref_counting
+ CONFTEST: drm_driver_has_gem_prime_res_obj
+ CONFTEST: drm_atomic_helper_connector_dpms
+ CONFTEST: drm_connector_funcs_have_mode_in_name
+ CONFTEST: drm_framebuffer_get
+ CONFTEST: drm_gem_object_get
+ CONFTEST: drm_dev_put
+ CONFTEST: drm_connector_for_each_possible_encoder
+ CONFTEST: drm_gem_object_put_unlocked
+ CONFTEST: is_export_symbol_gpl_of_node_to_nid
+ CONFTEST: is_export_symbol_present_swiotlb_map_sg_attrs
+ CONFTEST: is_export_symbol_present_swiotlb_dma_ops
+ CONFTEST: i2c_adapter
+ CONFTEST: pm_message_t
+ CONFTEST: irq_handler_t
+ CONFTEST: acpi_device_ops
+ CONFTEST: acpi_op_remove
+ CONFTEST: outer_flush_all
+ CONFTEST: proc_dir_entry
+ CONFTEST: scatterlist
+ CONFTEST: sg_table
+ CONFTEST: file_operations
+ CONFTEST: vm_operations_struct
+ CONFTEST: atomic_long_type
+ CONFTEST: pci_save_state
+ CONFTEST: file_inode
+ CONFTEST: task_struct
+ CONFTEST: kuid_t
+ CONFTEST: dma_ops
+ CONFTEST: swiotlb_dma_ops
+ CONFTEST: dma_map_ops
+ CONFTEST: noncoherent_swiotlb_dma_ops
+ CONFTEST: vm_fault_present
+ CONFTEST: vm_fault_has_address
+ CONFTEST: kernel_write
+ CONFTEST: strnstr
+ CONFTEST: iterate_dir
+ CONFTEST: kstrtoull
+ CONFTEST: backlight_properties_type
+ CONFTEST: proc_ops
+ CONFTEST: timeval
+ CONFTEST: mm_has_mmap_lock
+ CONFTEST: kmem_cache_has_kobj_remove_work
+ CONFTEST: sysfs_slab_unlink
+ CONFTEST: vmalloc_has_pgprot_t_arg
+ CONFTEST: pci_dev_has_skip_bus_pm
+ CONFTEST: pci_channel_state
+ CONFTEST: fault_flags
+ CONFTEST: atomic64_type
+ CONFTEST: address_space
+ CONFTEST: backing_dev_info
+ CONFTEST: mm_context_t
+ CONFTEST: vm_ops_fault_removed_vma_arg
+ CONFTEST: vm_fault_t
+ CONFTEST: pnv_npu2_init_context
+ CONFTEST: drm_bus_present
+ CONFTEST: drm_bus_has_bus_type
+ CONFTEST: drm_bus_has_get_irq
+ CONFTEST: drm_bus_has_get_name
+ CONFTEST: drm_driver_has_device_list
+ CONFTEST: drm_driver_has_legacy_dev_list
+ CONFTEST: drm_driver_has_set_busid
+ CONFTEST: drm_crtc_state_has_connectors_changed
+ CONFTEST: drm_init_function_args
+ CONFTEST: drm_mode_connector_list_update_has_merge_type_bits_arg
+ CONFTEST: drm_helper_mode_fill_fb_struct
+ CONFTEST: drm_master_drop_has_from_release_arg
+ CONFTEST: drm_driver_unload_has_int_return_type
+ CONFTEST: kref_has_refcount_of_type_refcount_t
+ CONFTEST: drm_atomic_helper_crtc_destroy_state_has_crtc_arg
+ CONFTEST: drm_mode_object_find_has_file_priv_arg
+ CONFTEST: drm_connector_list_iter
+ CONFTEST: drm_atomic_helper_swap_state_has_stall_arg
+ CONFTEST: drm_driver_prime_flag_present
+ CONFTEST: drm_gem_prime_export_has_dev_arg
+ CONFTEST: drm_gem_object_has_resv
+ CONFTEST: drm_display_mode_has_vrefresh
+ CONFTEST: drm_driver_master_set_has_int_return_type
+ CONFTEST: drm_driver_has_gem_free_object
+ CONFTEST: drm_prime_pages_to_sg_has_drm_device_arg
+ CONFTEST: drm_driver_has_gem_prime_callbacks
+ CONFTEST: drm_crtc_atomic_check_has_atomic_state_arg
+ CONFTEST: drm_gem_object_vmap_has_map_arg
+ CONFTEST: drm_plane_atomic_check_has_atomic_state_arg
+ CONFTEST: drm_device_has_pdev
+ CONFTEST: dma_resv_add_fence
+ CONFTEST: dma_resv_reserve_fences
+ CONFTEST: reservation_object_reserve_shared_has_num_fences_arg
+ CONFTEST: dom0_kernel_present
+ CONFTEST: nvidia_vgpu_kvm_build
+ CONFTEST: nvidia_grid_build
+ CONFTEST: drm_available
+ CONFTEST: drm_atomic_available
+ CONFTEST: is_export_symbol_gpl_refcount_inc
+ CONFTEST: is_export_symbol_gpl_refcount_dec_and_test
+  CC [M]  nvidia/nv-frontend.o
+  CC [M]  nvidia/nv-instance.o
+nvidia/nv-instance.c:68:1: попередження: немає попереднього прототипу для «nv_pci_register_driver» [-Wmissing-prototypes]
+   68 | nv_pci_register_driver(
+      | ^~~~~~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia/nv-gpu-numa.o
+nvidia/nv-gpu-numa.c: У функції «gather_memblock_ids_for_node»:
+nvidia/nv-gpu-numa.c:232:47: попередження: приведення між несумісними типами функцій з «int (*)(struct dir_context *, const char *, int,  loff_t,  u64,  unsigned int)» {також відомий як «int (*)(struct dir_context *, const char *, int,  long long int,  long long unsigned int,  unsigned int)»} до «bool (*)(struct dir_context *, const char *, int,  loff_t,  u64,  unsigned int)» {також відомий як «_Bool (*)(struct dir_context *, const char *, int,  long long int,  long long unsigned int,  unsigned int)»} [-Wcast-function-type]
+  232 |     nv_dir_context_t ats_ctx = { .ctx.actor = (filldir_t)filldir_get_memblock_id };
+      |                                               ^
+  CC [M]  nvidia/nv.o
+nvidia/nv.c:775:12: попередження: немає попереднього прототипу для «nvidia_init_module» [-Wmissing-prototypes]
+  775 | int __init nvidia_init_module(void)
+      |            ^~~~~~~~~~~~~~~~~~
+nvidia/nv.c:1165:6: попередження: немає попереднього прототипу для «nvidia_exit_module» [-Wmissing-prototypes]
+ 1165 | void nvidia_exit_module(void)
+      |      ^~~~~~~~~~~~~~~~~~
+У файлі, включеному з /usr/src/linux-6.17.6/include/linux/srcu.h:21,
+                 з /usr/src/linux-6.17.6/include/linux/notifier.h:16,
+                 з /usr/src/linux-6.17.6/arch/x86/include/asm/uprobes.h:13,
+                 з /usr/src/linux-6.17.6/include/linux/uprobes.h:65,
+                 з /usr/src/linux-6.17.6/include/linux/mm_types.h:16,
+                 з /usr/src/linux-6.17.6/include/linux/mmzone.h:22,
+                 з /usr/src/linux-6.17.6/include/linux/gfp.h:7,
+                 з /usr/src/linux-6.17.6/include/linux/mm.h:7,
+                 з ././common/inc/nv-pgprot.h:17,
+                 з ././common/inc/nv-linux.h:20,
+                 з nvidia/nv.c:13:
+У функції «nv_stop_device»,
+    вбудовано з «nv_close_device» в nvidia/nv.c:1942:9:
+/usr/src/linux-6.17.6/include/linux/workqueue.h:772:9: попередження: виклик «__warn_flushing_systemwide_wq», оголошений з атрибутом попередження: Please avoid flushing system-wide workqueues. [-Wattribute-warning]
+  772 |         __warn_flushing_systemwide_wq();                                \
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+././common/inc/nv-linux.h:1528:5: примітка: у розширенні макросу «flush_scheduled_work»
+ 1528 |     flush_scheduled_work();
+      |     ^~~~~~~~~~~~~~~~~~~~
+nvidia/nv.c:1879:9: примітка: у розширенні макросу «NV_WORKQUEUE_FLUSH»
+ 1879 |         NV_WORKQUEUE_FLUSH();
+      |         ^~~~~~~~~~~~~~~~~~
+nvidia/nv.c: У функції «nvidia_remove»:
+/usr/src/linux-6.17.6/include/linux/workqueue.h:772:9: попередження: виклик «__warn_flushing_systemwide_wq», оголошений з атрибутом попередження: Please avoid flushing system-wide workqueues. [-Wattribute-warning]
+  772 |         __warn_flushing_systemwide_wq();                                \
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+././common/inc/nv-linux.h:1528:5: примітка: у розширенні макросу «flush_scheduled_work»
+ 1528 |     flush_scheduled_work();
+      |     ^~~~~~~~~~~~~~~~~~~~
+nvidia/nv.c:4116:9: примітка: у розширенні макросу «NV_WORKQUEUE_FLUSH»
+ 4116 |         NV_WORKQUEUE_FLUSH();
+      |         ^~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia/nv-acpi.o
+nvidia/nv-acpi.c: У функції «nv_acpi_methods_uninit»:
+nvidia/nv-acpi.c:687:25: попередження: Невикористана змінна «device» [-Wunused-variable]
+  687 |     struct acpi_device *device = NULL;
+      |                         ^~~~~~
+  CC [M]  nvidia/nv-chrdev.o
+  CC [M]  nvidia/nv-cray.o
+  CC [M]  nvidia/nv-dma.o
+nvidia/nv-dma.c:224:6: попередження: немає попереднього прототипу для «nv_load_dma_map_scatterlist» [-Wmissing-prototypes]
+  224 | void nv_load_dma_map_scatterlist(
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia/nv-gvi.o
+У файлі, включеному з /usr/src/linux-6.17.6/include/linux/srcu.h:21,
+                 з /usr/src/linux-6.17.6/include/linux/notifier.h:16,
+                 з /usr/src/linux-6.17.6/arch/x86/include/asm/uprobes.h:13,
+                 з /usr/src/linux-6.17.6/include/linux/uprobes.h:65,
+                 з /usr/src/linux-6.17.6/include/linux/mm_types.h:16,
+                 з /usr/src/linux-6.17.6/include/linux/mmzone.h:22,
+                 з /usr/src/linux-6.17.6/include/linux/gfp.h:7,
+                 з /usr/src/linux-6.17.6/include/linux/mm.h:7,
+                 з ././common/inc/nv-pgprot.h:17,
+                 з ././common/inc/nv-linux.h:20,
+                 з nvidia/nv-gvi.c:15:
+nvidia/nv-gvi.c: У функції «nv_gvi_kern_suspend»:
+/usr/src/linux-6.17.6/include/linux/workqueue.h:772:9: попередження: виклик «__warn_flushing_systemwide_wq», оголошений з атрибутом попередження: Please avoid flushing system-wide workqueues. [-Wattribute-warning]
+  772 |         __warn_flushing_systemwide_wq();                                \
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+././common/inc/nv-linux.h:1528:5: примітка: у розширенні макросу «flush_scheduled_work»
+ 1528 |     flush_scheduled_work();
+      |     ^~~~~~~~~~~~~~~~~~~~
+nvidia/nv-gvi.c:90:5: примітка: у розширенні макросу «NV_WORKQUEUE_FLUSH»
+   90 |     NV_WORKQUEUE_FLUSH();
+      |     ^~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia/nv-i2c.o
+  CC [M]  nvidia/nv-mempool.o
+  CC [M]  nvidia/nv-mmap.o
+nvidia/nv-mmap.c:273:1: попередження: «static» не знаходиться на початку оголошення [-Wold-style-declaration]
+  273 | int static nvidia_mmap_peer_io(
+      | ^~~
+nvidia/nv-mmap.c:294:1: попередження: «static» не знаходиться на початку оголошення [-Wold-style-declaration]
+  294 | int static nvidia_mmap_sysmem(
+      | ^~~
+nvidia/nv-mmap.c: У функції «nv_encode_caching»:
+nvidia/nv-mmap.c:262:16: попередження: ця інструкція може продовжити виконання [-Wimplicit-fallthrough=]
+  262 |             if (NV_ALLOW_CACHING(memory_type))
+      |                ^
+nvidia/nv-mmap.c:264:9: примітка: тут
+  264 |         default:
+      |         ^~~~~~~
+  CC [M]  nvidia/nv-p2p.o
+  CC [M]  nvidia/nv-pat.o
+  CC [M]  nvidia/nv-procfs.o
+nvidia/nv-procfs.c:430:1: попередження: немає попереднього прототипу для «exercise_error_forwarding_va» [-Wmissing-prototypes]
+  430 | exercise_error_forwarding_va(
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia/nv-usermap.o
+  CC [M]  nvidia/nv-vm.o
+  CC [M]  nvidia/nv-vtophys.o
+  CC [M]  nvidia/os-interface.o
+У файлі, включеному з /usr/src/linux-6.17.6/include/linux/srcu.h:21,
+                 з /usr/src/linux-6.17.6/include/linux/notifier.h:16,
+                 з /usr/src/linux-6.17.6/arch/x86/include/asm/uprobes.h:13,
+                 з /usr/src/linux-6.17.6/include/linux/uprobes.h:65,
+                 з /usr/src/linux-6.17.6/include/linux/mm_types.h:16,
+                 з /usr/src/linux-6.17.6/include/linux/mmzone.h:22,
+                 з /usr/src/linux-6.17.6/include/linux/gfp.h:7,
+                 з /usr/src/linux-6.17.6/include/linux/mm.h:7,
+                 з ././common/inc/nv-pgprot.h:17,
+                 з ././common/inc/nv-linux.h:20,
+                 з nvidia/os-interface.c:15:
+nvidia/os-interface.c: У функції «os_flush_work_queue»:
+/usr/src/linux-6.17.6/include/linux/workqueue.h:772:9: попередження: виклик «__warn_flushing_systemwide_wq», оголошений з атрибутом попередження: Please avoid flushing system-wide workqueues. [-Wattribute-warning]
+  772 |         __warn_flushing_systemwide_wq();                                \
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+././common/inc/nv-linux.h:1528:5: примітка: у розширенні макросу «flush_scheduled_work»
+ 1528 |     flush_scheduled_work();
+      |     ^~~~~~~~~~~~~~~~~~~~
+nvidia/os-interface.c:1042:9: примітка: у розширенні макросу «NV_WORKQUEUE_FLUSH»
+ 1042 |         NV_WORKQUEUE_FLUSH();
+      |         ^~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia/os-mlock.o
+  CC [M]  nvidia/os-pci.o
+  CC [M]  nvidia/os-registry.o
+  CC [M]  nvidia/os-usermap.o
+  CC [M]  nvidia/nv-modeset-interface.o
+  CC [M]  nvidia/nv-pci-table.o
+  CC [M]  nvidia/nv-kthread-q.o
+nvidia/nv-kthread-q.c:244:6: попередження: немає попереднього прототипу для «_raw_q_flush» [-Wmissing-prototypes]
+  244 | void _raw_q_flush(nv_kthread_q_t *q)
+      |      ^~~~~~~~~~~~
+  CC [M]  nvidia/nv-kthread-q-selftest.o
+nvidia/nv-kthread-q-selftest.c:74:6: попередження: немає попереднього прототипу для «on_nvq_assert» [-Wmissing-prototypes]
+   74 | void on_nvq_assert(void)
+      |      ^~~~~~~~~~~~~
+  CC [M]  nvidia/nv-memdbg.o
+  CC [M]  nvidia/nv-ibmnpu.o
+nvidia/nv-ibmnpu.c:280:6: попередження: немає попереднього прототипу для «nv_init_ibmnpu_info» [-Wmissing-prototypes]
+  280 | void nv_init_ibmnpu_info(nv_state_t *nv)
+      |      ^~~~~~~~~~~~~~~~~~~
+nvidia/nv-ibmnpu.c:284:6: попередження: немає попереднього прототипу для «nv_destroy_ibmnpu_info» [-Wmissing-prototypes]
+  284 | void nv_destroy_ibmnpu_info(nv_state_t *nv)
+      |      ^~~~~~~~~~~~~~~~~~~~~~
+nvidia/nv-ibmnpu.c:288:5: попередження: немає попереднього прототипу для «nv_init_ibmnpu_devices» [-Wmissing-prototypes]
+  288 | int nv_init_ibmnpu_devices(nv_state_t *nv)
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia/nv-report-err.o
+  CC [M]  nvidia/nv_uvm_interface.o
+  CC [M]  nvidia/nvlink_linux.o
+nvidia/nvlink_linux.c:287:12: попередження: немає попереднього прототипу для «nvlink_core_init» [-Wmissing-prototypes]
+  287 | int __init nvlink_core_init(void)
+      |            ^~~~~~~~~~~~~~~~
+nvidia/nvlink_linux.c:353:6: попередження: немає попереднього прототипу для «nvlink_core_exit» [-Wmissing-prototypes]
+  353 | void nvlink_core_exit(void)
+      |      ^~~~~~~~~~~~~~~~
+  SYMLINK nvidia/nv-kernel.o
+  LD [M]  nvidia.o
+  CC [M]  nvidia-uvm/uvm_utils.o
+  CC [M]  nvidia-uvm/uvm_common.o
+  CC [M]  nvidia-uvm/uvm_linux.o
+  CC [M]  nvidia-uvm/nvstatus.o
+  CC [M]  nvidia-uvm/nvCpuUuid.o
+  CC [M]  nvidia-uvm/uvm8.o
+  CC [M]  nvidia-uvm/uvm8_tools.o
+nvidia-uvm/uvm8_tools.c:2067:5: попередження: немає попереднього прототипу для «uvm_tools_init» [-Wmissing-prototypes]
+ 2067 | int uvm_tools_init(dev_t uvm_base_dev)
+      |     ^~~~~~~~~~~~~~
+nvidia-uvm/uvm8_tools.c:2119:6: попередження: немає попереднього прототипу для «uvm_tools_exit» [-Wmissing-prototypes]
+ 2119 | void uvm_tools_exit(void)
+      |      ^~~~~~~~~~~~~~
+  CC [M]  nvidia-uvm/uvm8_global.o
+  CC [M]  nvidia-uvm/uvm8_gpu.o
+nvidia-uvm/uvm8_gpu.c:2342:11: попередження: немає попереднього прототипу для «uvm8_test_set_prefetch_filtering» [-Wmissing-prototypes]
+ 2342 | NV_STATUS uvm8_test_set_prefetch_filtering(UVM_TEST_SET_PREFETCH_FILTERING_PARAMS *params, struct file *filp)
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia-uvm/uvm8_gpu_isr.o
+  CC [M]  nvidia-uvm/uvm8_procfs.o
+  CC [M]  nvidia-uvm/uvm8_va_space.o
+nvidia-uvm/uvm8_va_space.c:1323:11: попередження: немає попереднього прототипу для «uvm_api_enable_peer_access» [-Wmissing-prototypes]
+ 1323 | NV_STATUS uvm_api_enable_peer_access(UVM_ENABLE_PEER_ACCESS_PARAMS *params, struct file *filp)
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~
+nvidia-uvm/uvm8_va_space.c:1356:11: попередження: немає попереднього прототипу для «uvm_api_disable_peer_access» [-Wmissing-prototypes]
+ 1356 | NV_STATUS uvm_api_disable_peer_access(UVM_DISABLE_PEER_ACCESS_PARAMS *params, struct file *filp)
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+nvidia-uvm/uvm8_va_space.c:1403:11: попередження: немає попереднього прототипу для «uvm8_test_flush_deferred_work» [-Wmissing-prototypes]
+ 1403 | NV_STATUS uvm8_test_flush_deferred_work(UVM_TEST_FLUSH_DEFERRED_WORK_PARAMS *params, struct file *filp)
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia-uvm/uvm8_gpu_semaphore.o
+  CC [M]  nvidia-uvm/uvm8_mem.o
+  CC [M]  nvidia-uvm/uvm8_rm_mem.o
+  CC [M]  nvidia-uvm/uvm8_channel.o
+nvidia-uvm/uvm8_channel.c:1140:6: попередження: немає попереднього прототипу для «uvm_channel_manager_print_pending_pushes» [-Wmissing-prototypes]
+ 1140 | void uvm_channel_manager_print_pending_pushes(uvm_channel_manager_t *manager, struct seq_file *seq)
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia-uvm/uvm8_lock.o
+  CC [M]  nvidia-uvm/uvm8_hal.o
+  CC [M]  nvidia-uvm/uvm8_rb_tree.o
+  CC [M]  nvidia-uvm/uvm8_range_tree.o
+  CC [M]  nvidia-uvm/uvm8_range_allocator.o
+  CC [M]  nvidia-uvm/uvm8_va_range.o
+nvidia-uvm/uvm8_va_range.c:562:6: попередження: немає попереднього прототипу для «uvm_va_range_remove_gpu_va_space_managed» [-Wmissing-prototypes]
+  562 | void uvm_va_range_remove_gpu_va_space_managed(uvm_va_range_t *va_range, uvm_gpu_va_space_t *gpu_va_space)
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nvidia-uvm/uvm8_va_range.c: У функції «uvm_va_range_check_logical_permissions»:
+nvidia-uvm/uvm8_va_range.c:1571:81: попередження: неявне перетворення з «uvm_fault_type_t» на «uvm_fault_access_type_t» [-Wenum-conversion]
+ 1571 |         if (uvm_enable_builtin_tests && !fault_check_range_permission(va_range, access_type))
+      |                                                                                 ^~~~~~~~~~~
+  CC [M]  nvidia-uvm/uvm8_va_block.o
+nvidia-uvm/uvm8_va_block.c:6524:11: попередження: немає попереднього прототипу для «block_map» [-Wmissing-prototypes]
+ 6524 | NV_STATUS block_map(uvm_va_block_t *va_block,
+      |           ^~~~~~~~~
+nvidia-uvm/uvm8_va_block.c: У функції «block_cpu_fault_locked»:
+nvidia-uvm/uvm8_va_block.c:9392:53: попередження: неявне перетворення з «uvm_fault_access_type_t» на «uvm_fault_type_t» [-Wenum-conversion]
+ 9392 |                                                     fault_access_type,
+      |                                                     ^~~~~~~~~~~~~~~~~
+  CC [M]  nvidia-uvm/uvm8_range_group.o
+nvidia-uvm/uvm8_range_group.c:509:26: попередження: немає попереднього прототипу для «uvm_range_group_range_prev» [-Wmissing-prototypes]
+  509 | uvm_range_group_range_t *uvm_range_group_range_prev(uvm_va_space_t *va_space, uvm_range_group_range_t *range)
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~
+nvidia-uvm/uvm8_range_group.c:515:26: попередження: немає попереднього прототипу для «uvm_range_group_range_next» [-Wmissing-prototypes]
+  515 | uvm_range_group_range_t *uvm_range_group_range_next(uvm_va_space_t *va_space, uvm_range_group_range_t *range)
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~
+nvidia-uvm/uvm8_range_group.c:667:6: попередження: немає попереднього прототипу для «range_group_range_iter_advance» [-Wmissing-prototypes]
+  667 | void range_group_range_iter_advance(uvm_range_group_range_iter_t *iter, NvU64 end)
+      |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nvidia-uvm/uvm8_range_group.c:764:11: попередження: немає попереднього прототипу для «uvm8_test_range_group_range_info» [-Wmissing-prototypes]
+  764 | NV_STATUS uvm8_test_range_group_range_info(UVM_TEST_RANGE_GROUP_RANGE_INFO_PARAMS *params, struct file *filp)
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nvidia-uvm/uvm8_range_group.c:805:11: попередження: немає попереднього прототипу для «uvm8_test_range_group_range_count» [-Wmissing-prototypes]
+  805 | NV_STATUS uvm8_test_range_group_range_count(UVM_TEST_RANGE_GROUP_RANGE_COUNT_PARAMS *params, struct file *filp)
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia-uvm/uvm8_gpu_replayable_faults.o
+nvidia-uvm/uvm8_gpu_replayable_faults.c: У функції «check_fault_access_permissions»:
+nvidia-uvm/uvm8_gpu_replayable_faults.c:974:69: попередження: неявне перетворення з «uvm_fault_access_type_t» на «uvm_fault_type_t» [-Wenum-conversion]
+  974 |                                                          fault_entry->fault_access_type,
+      |                                                          ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~
+nvidia-uvm/uvm8_gpu_replayable_faults.c:997:66: попередження: неявне перетворення з «enum <анонімний>» на «uvm_fault_type_t» [-Wenum-conversion]
+  997 |                                                                  UVM_FAULT_ACCESS_TYPE_READ,
+      |                                                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~
+nvidia-uvm/uvm8_gpu_replayable_faults.c: На верхньому рівні:
+nvidia-uvm/uvm8_gpu_replayable_faults.c:2249:11: попередження: немає попереднього прототипу для «uvm8_test_get_prefetch_faults_reenable_lapse» [-Wmissing-prototypes]
+ 2249 | NV_STATUS uvm8_test_get_prefetch_faults_reenable_lapse(UVM_TEST_GET_PREFETCH_FAULTS_REENABLE_LAPSE_PARAMS *params,
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nvidia-uvm/uvm8_gpu_replayable_faults.c:2257:11: попередження: немає попереднього прототипу для «uvm8_test_set_prefetch_faults_reenable_lapse» [-Wmissing-prototypes]
+ 2257 | NV_STATUS uvm8_test_set_prefetch_faults_reenable_lapse(UVM_TEST_SET_PREFETCH_FAULTS_REENABLE_LAPSE_PARAMS *params,
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia-uvm/uvm8_gpu_non_replayable_faults.o
+nvidia-uvm/uvm8_gpu_non_replayable_faults.c: У функції «service_non_replayable_fault_block_locked»:
+nvidia-uvm/uvm8_gpu_non_replayable_faults.c:224:64: попередження: неявне перетворення з «uvm_fault_access_type_t» на «uvm_fault_type_t» [-Wenum-conversion]
+  224 |                                                     fault_entry->fault_access_type,
+      |                                                     ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~
+  CC [M]  nvidia-uvm/uvm8_gpu_access_counters.o
+  CC [M]  nvidia-uvm/uvm8_perf_events.o
+  CC [M]  nvidia-uvm/uvm8_perf_module.o
+  CC [M]  nvidia-uvm/uvm8_mmu.o
+nvidia-uvm/uvm8_mmu.c:698:11: попередження: немає попереднього прототипу для «try_get_ptes» [-Wmissing-prototypes]
+  698 | NV_STATUS try_get_ptes(uvm_page_tree_t *tree,
+      |           ^~~~~~~~~~~~
+  CC [M]  nvidia-uvm/uvm8_pte_batch.o
+  CC [M]  nvidia-uvm/uvm8_tlb_batch.o

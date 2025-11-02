@@ -27,8 +27,8 @@ cd $(dirname $0) ; CWD=$(pwd)
 
 PRGNAM=nvidia-legacy390-driver
 VERSION=${VERSION:-390.157}
-BUILD=${BUILD:-1}
-TAG=${TAG:-_Nyk}
+BUILD=${BUILD:-10}
+TAG=${TAG:-_SBo}
 PKGTYPE=${PKGTYPE:-tgz}
 
 set -e
@@ -41,7 +41,7 @@ if [ -z "$ARCH" ]; then
   esac
 fi
 
-TMP=${TMP:-/tmp/Nyk}
+TMP=${TMP:-/tmp/SBo}
 PKG=$TMP/package-$PRGNAM
 OUTPUT=${OUTPUT:-/tmp}
 
@@ -95,7 +95,7 @@ SRCNAM=NVIDIA-Linux-$TARGET-${VERSION}
 rm -rf $PKG
 rm -rf $TMP/$SRCNAM
 mkdir -p $TMP $PKG $OUTPUT $PKG/install
-mkdir -p $PKG/usr/lib$LIBDIRSUFFIX/nvidia/xorg \
+mkdir -p $PKG/usr/lib$LIBDIRSUFFIX/xorg/modules/{drivers,extensions} \
   $PKG/etc/OpenCL/vendors/ $PKG/usr/{bin,doc,man/man1} \
   $PKG/usr/share/{applications,nvidia,pixmaps,egl/egl_external_platform.d} \
   $PKG/etc/X11/glvnd/egl_vendor.d $PKG/var/log
@@ -103,8 +103,6 @@ mkdir -p $PKG/usr/lib$LIBDIRSUFFIX/nvidia/xorg \
 if [ "$COMPAT32" = "yes" ]; then
   mkdir -p $PKG/usr/lib/tls
 fi
-
-(
 
 # Extract all the sources
 cd $TMP
@@ -114,9 +112,9 @@ rm -rf nvidia-settings-$VERSION
 tar xvf $CWD/nvidia-settings-$VERSION.tar.bz2
 rm -rf nvidia-xconfig-$VERSION
 tar xvf $CWD/nvidia-xconfig-$VERSION.tar.bz2
-rm -rf nvidia-modprobe-$VERSION
+rm -rf nvidia-modprobe-$VERSION.tar.bz2
 tar xvf $CWD/nvidia-modprobe-$VERSION.tar.bz2
-sh $CWD/../$SRCNAM.run --extract-only
+sh $CWD/$SRCNAM.run --extract-only
 cd $SRCNAM
 chown -R root:root .
 find -L . \
@@ -182,7 +180,7 @@ cd $TMP/$SRCNAM
   -z -n -b --no-rpms --no-distro-scripts \
   --no-kernel-module-source --no-x-check --force-libglx-indirect \
   --x-prefix=$PKG/usr \
-  --x-module-path=$PKG/usr/lib${LIBDIRSUFFIX}/nvidia/xorg/ \
+  --x-module-path=$PKG/usr/lib${LIBDIRSUFFIX}/xorg/modules \
   --x-library-path=$PKG/usr/lib${LIBDIRSUFFIX} \
   --x-sysconfig-path=$PKG/etc/X11/xorg.conf.d \
   --opengl-prefix=$PKG/usr \
@@ -201,17 +199,6 @@ cd $TMP/$SRCNAM
 # no longer needed (caused the "failed to remove some directories"
 # warning message):
 rm -rf $PKG/var/lib
-
-# Replace a library that stopped working
-if [ -d $PKG/usr/lib${LIBDIRSUFFIX} ] ; then
-    cp -f $PKG/usr/lib${LIBDIRSUFFIX}/tls/libnvidia-tls.so.$VERSION $PKG/usr/lib${LIBDIRSUFFIX}/
-#    rm -rf $PKG/usr/lib${LIBDIRSUFFIX}/tls
-fi
-
-if [ "$COMPAT32" = "yes" ]; then
-    cp -f $PKG/usr/lib/tls/libnvidia-tls.so.$VERSION $PKG/usr/lib/
-#    rm -rf $PKG/usr/lib/tls
-fi
 
 # if not multilib, remove the unneeded /usr/lib folder:
 if [ "$ARCH" = "x86_64" -a "${COMPAT32}" != "yes" ]; then
@@ -282,6 +269,19 @@ cd -
     install -m 644 _out/Linux_$TARGET/nvidia-modprobe.1.gz $PKG/usr/man/man1/
   cd -
 
+# Bash script to cleanly install (in doinst.sh) and uninstall the nvidia files
+# so we don't stomp on the overlapping xorg files.
+# Note: switching can be problematic ;-)
+mkdir -p $PKG/usr/sbin
+install -m 0755 $CWD/nvidia-switch $PKG/usr/sbin/
+sed -i s/PKGVERSION/$VERSION/g $PKG/usr/sbin/nvidia-switch
+sed -i s/LIBDIRSUFFIX/$LIBDIRSUFFIX/g $PKG/usr/sbin/nvidia-switch
+if [ ${COMPAT32} = "yes" ]; then
+  sed -i s/LIB32FLAG/yes/g $PKG/usr/sbin/nvidia-switch
+else
+  sed -i s/LIB32FLAG/no/g $PKG/usr/sbin/nvidia-switch
+fi
+
 # These add or correct wrong paths
 sed -i "s|__UTILS_PATH__|/usr/bin|" $PKG/usr/share/applications/nvidia-settings.desktop
 sed -i "s|__PIXMAP_PATH__|/usr/share/pixmaps|" $PKG/usr/share/applications/nvidia-settings.desktop
@@ -293,10 +293,10 @@ sed -i '/Encoding/d' $PKG/usr/share/applications/nvidia-settings.desktop
 cd $PKG/usr/lib$LIBDIRSUFFIX
   rm -f libGL.la
   rm -f libOpenCL.so*
-#  rm -f xorg/modules/libwfb.so
-#  if [ -e xorg/modules/extensions/libglx.so ]; then
-#    rm -f xorg/modules/extensions/libglx.so
-#  fi
+  rm -f xorg/modules/libwfb.so
+  if [ -e xorg/modules/extensions/libglx.so ]; then
+    rm -f xorg/modules/extensions/libglx.so
+  fi
 cd -
 
 if [ "$ARCH" = "x86_64" -a "${COMPAT32}" = "yes" ]; then
@@ -309,12 +309,8 @@ if [ "$ARCH" = "x86_64" -a "${COMPAT32}" = "yes" ]; then
 # so ignoring for now.
 fi
 
-# Make sure the X is specified to automagically load the
-# correct driver and to ignore its ABI version. You can remove
-# this file if you have an equivalent entry in /etc/X11/xorg.d
-
-mkdir -p $PKG/usr/share/X11/xorg.conf.d/
-cat $CWD/nvidia-drm-outputclass.conf | sed "s|LIBDIRSUFFIX|$LIBDIRSUFFIX|"> $PKG/usr/share/X11/xorg.conf.d/10-nvidia.conf
+# Remove xorg.conf.d folder since we handle that in nvidia-legacy390-kernel
+rm -rf $PKG/etc/X11/xorg.conf.d
 
 cd $TMP/$SRCNAM
 # put docs in the right place
@@ -335,6 +331,9 @@ else
 fi
 
 cat $CWD/doinst.sh > $PKG/install/doinst.sh
+
+# Add new douninst.sh script:
+sed "s/SUFFIX/$LIBDIRSUFFIX/g" $CWD/douninst.sh > $PKG/install/douninst.sh
 
 # Add rc.nvidia-persistenced:
 if [ "${PERSISTENCED:-no}" = "yes" ]; then
@@ -360,14 +359,13 @@ if [ "${PERSISTENCED:-no}" = "yes" ]; then
     install -m 755 $CWD/rc.nvidia-persistenced $PKG/etc/rc.d/rc.nvidia-persistenced
     sed -i "s|__USER__|nvidia|" $PKG/etc/rc.d/rc.nvidia-persistenced
     chown nvidia:nvidia $PKG/var/run/nvidia-persistenced
+  cd -
 fi
 
 # We must now remove our custom nvidia-installer as it will no longer
 # work on an installed driver:
 rm -f $PKG/usr/bin/nvidia-{installer,uninstall}
 
-# Flag multilib as needed and build package.
+# Flag multlib as needed and build package.
 cd $PKG
 /sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION$MULTI-$ARCH-$BUILD$TAG.$PKGTYPE
-mv $OUTPUT/$PRGNAM-$VERSION$MULTI-$ARCH-$BUILD$TAG.$PKGTYPE $CWD/
-)  2>&1 | tee $CWD/$PRGNAM-$VERSION$MULTI-$ARCH-$BUILD$TAG.log

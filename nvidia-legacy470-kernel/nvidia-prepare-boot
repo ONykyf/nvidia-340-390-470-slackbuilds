@@ -71,9 +71,10 @@ chmod +x $TMPINITRD/load_kernel_modules
 find . | cpio -o -H newc | gzip -9 >  /boot/initrd-$KERNELVER.img
 
 cd ..
+rm -rf $TMPINITRD
 
 for foo in `ls /boot/initrd-*-nvidia.backup` ; do
-  base=`echo foo | rev | cut -f 2- -d '.' | rev`
+  base=`echo $foo | rev | cut -f 2- -d '.' | rev`
   if [ ! -r $base.img ] ; then
     cp -f $foo $base.img
   fi

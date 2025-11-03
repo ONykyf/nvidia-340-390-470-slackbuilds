@@ -43,14 +43,14 @@ The created packages and build logs are put alongside the build scripts (not in 
 
 Note that `nvidia-legacy${VERSION}-driver` is common, but `nvidia-legacy${VERSION}-kernel` should be built and installed separately for all kernels you use (boot each kernel and re-run the build script).
 
-After the installation for 390 and 470 versions (but not for 340) you will get `/boot/initrd-${KERNEL}.img` and `/boot/initrd-${KERNEL}-nvidia.img` initramfs images, which should be loaded at early boot. To simplify this, an `/etc/lilo.conf.nvidia-${KERNEL}` snippet is generated simultaneously, which looks like this:
+After the installation you will get `/boot/initrd-${KERNEL}.img` initramfs image cleared of `nouveau`, `nvidia`, `nvidia-drm`, `nvidia-uvm` and `nvidia-modeset` kernel modules, which ensures that they will not be loaded at early boot. To simplify this, an `/etc/lilo.conf.nvidia-${KERNEL}` snippet is generated simultaneously, which looks like this:
 ```
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.12.6
   root = /dev/sda9
   label = Linux-6.12.6+
   read-only  # Partitions should be mounted read-only for checking
-  initrd = /boot/initrd-6.12.6-nvidia.img
+  initrd = /boot/initrd-6.12.6.img
   append = " module_blacklist=nouveau nvidia.modeset=1"
 # Linux bootable partition config ends
 # Linux bootable partition config begins
@@ -63,9 +63,10 @@ image = /boot/vmlinuz-6.12.6
 # Linux bootable partition config ends
 ```
 
-Note that `geninitrd` by default clears `/boot/initrd-${KERNEL}-nvidia.img` as "orphaned", e.g., when a new kernel is installed. Then running `nvidia-prepare-boot` (and `lilo`, if used) restores the correct initrd images and points the bootloader to their locations.
+Note that `/boot/initrd-${KERNEL}.img` may be overwritten, e.g., when a kernel is reinstalled. If you encounter problems after this, then running `nvidia-prepare-boot` (and `lilo`, if used) with this kernel booted restores the correct initrd image and points the bootloader to its location.
 
-For nvidia340 a special initrd image is not necessary, and `/etc/lilo.conf.nvidia-${KERNEL}` looks simpler:
+Version 340 of the NVidia driver is not kernel modesetting capable and hence lacks `nvidia_modeset` kernel module, and DRM functionality is implemented in `nvidia` module, i.e., there is no separate `nvidia_drm`.
+Therefore `/etc/lilo.conf.nvidia-${KERNEL}` looks simpler:
 ```
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.17.6

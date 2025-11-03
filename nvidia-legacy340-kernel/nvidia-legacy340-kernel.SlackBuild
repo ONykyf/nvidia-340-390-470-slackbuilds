@@ -169,7 +169,7 @@ mkdir -p $PKG/usr/doc/$PRGNAM-$PKGVER
 cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$PKGVER/$PRGNAM.SlackBuild
 
 mkdir -p $PKG/usr/sbin
-install -m 700 $CWD/nvidia340-prepare-boot $PKG/usr/sbin
+install -m 700 $CWD/nvidia-prepare-boot $PKG/usr/sbin
 
 mkdir -p $PKG/install
 cat $CWD/slack-desc > $PKG/install/slack-desc

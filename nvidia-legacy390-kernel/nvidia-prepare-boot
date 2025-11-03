@@ -16,14 +16,6 @@ if [ ! -r /boot/vmlinuz-$KERNELVER ] ; then
     exit 1
 fi
 
-if [ ! -r /lib/modules/$KERNELVER/kernel/drivers/video/nvidia.ko -o \
-     ! -r /lib/modules/$KERNELVER/kernel/drivers/video/nvidia-drm.ko -o \
-     ! -r /lib/modules/$KERNELVER/kernel/drivers/video/nvidia-modeset.ko -o \
-     ! -r /lib/modules/$KERNELVER/kernel/drivers/video/nvidia-uvm.ko ] ; then
-    echo "NVidia modules missing for linux-$KERNELVER kernel, cannot proceed!"
-    exit 1
-fi
-
 if [ ! -x /usr/sbin/geninitrd ] ; then
     echo "There is no geninitrd executable, cannot proceed!"
     exit 1
@@ -42,43 +34,23 @@ cd $TMPINITRD
 
 zcat /boot/initrd-$KERNELVER.img | cpio -i -d
 
+echo "Removing nvidia and nouveau kernel modules from /boot/initrd-$KERNELVER.img"
+
 rm -rf $TMPINITRD/lib/modules/$KERNELVER/kernel/drivers/gpu/drm/nouveau
-mkdir -p $TMPINITRD/lib/modules/$KERNELVER/kernel/drivers/video
-cp -f /lib/modules/$KERNELVER/kernel/drivers/video/{nvidia,nvidia-drm,nvidia-modeset,nvidia-uvm}.ko \
+rm -f $TMPINITRD/lib/modules/$KERNELVER/kernel/drivers/video/{nvidia,nvidia-drm,nvidia-modeset,nvidia-uvm}.ko \
     $TMPINITRD/lib/modules/$KERNELVER/kernel/drivers/video/
-egrep -v 'nvidia|nouveau' $TMPINITRD/load_kernel_modules | \
-    sed 's|^\([[:blank:]]*\)modprobe\([[:blank:]][[:blank:]]*\)-v\([[:blank:]][[:blank:]]*\)drm[[:blank:]]*$|\1modprobe\2-v\3nvidia\n\1modprobe\2-v\3drm|' \
-     > $TMPINITRD/load_kernel_modules.new
-cp -f $TMPINITRD/load_kernel_modules.new $TMPINITRD/load_kernel_modules
-grep nvidia $TMPINITRD/load_kernel_modules.new | sed 's|nvidia$|nvidia-modeset|' >> $TMPINITRD/load_kernel_modules
-grep nvidia $TMPINITRD/load_kernel_modules.new | sed 's|nvidia$|nvidia-drm|' >> $TMPINITRD/load_kernel_modules
-grep nvidia $TMPINITRD/load_kernel_modules.new | sed 's|nvidia$|nvidia-uvm|' >> $TMPINITRD/load_kernel_modules
-rm -f $TMPINITRD/load_kernel_modules.new
-depmod -b $TMPINITRD $KERNELVER
+egrep -v 'nvidia|nouveau' $TMPINITRD/load_kernel_modules \
+    > $TMPINITRD/load_kernel_modules.new
+mv -f $TMPINITRD/load_kernel_modules.new $TMPINITRD/load_kernel_modules
 chmod +x $TMPINITRD/load_kernel_modules
+depmod -b $TMPINITRD $KERNELVER
 
 find . | cpio -o -H newc | gzip -9 >  /boot/initrd-$KERNELVER-nvidia.img
-cp -f /boot/initrd-$KERNELVER-nvidia.img /boot/initrd-$KERNELVER-nvidia.backup
 
-rm -f $TMPINITRD/lib/modules/$KERNELVER/kernel/drivers/video/{nvidia,nvidia-drm,nvidia-modeset,nvidia-uvm}.ko
-mkdir -p $TMPINITRD/lib/modules/$KERNELVER/kernel/drivers/gpu/drm
-cp -rf /lib/modules/$KERNELVER/kernel/drivers/gpu/drm/nouveau $TMPINITRD/lib/modules/$KERNELVER/kernel/drivers/gpu/drm
-grep -v nvidia $TMPINITRD/load_kernel_modules > $TMPINITRD/load_kernel_modules.new
-cp -f $TMPINITRD/load_kernel_modules.new $TMPINITRD/load_kernel_modules
-echo 'modprobe -v nouveau' >> $TMPINITRD/load_kernel_modules
-depmod -b $TMPINITRD $KERNELVER
-chmod +x $TMPINITRD/load_kernel_modules
-find . | cpio -o -H newc | gzip -9 >  /boot/initrd-$KERNELVER.img
+echo "Repacked /boot/initrd-$KERNELVER.img"
 
 cd ..
 rm -rf $TMPINITRD
-
-for foo in `ls /boot/initrd-*-nvidia.backup` ; do
-  base=`echo $foo | rev | cut -f 2- -d '.' | rev`
-  if [ ! -r $base.img ] ; then
-    cp -f $foo $base.img
-  fi
-done
 
 ROOT=`cat /etc/mtab | egrep '^[^[:blank:]]* / '`
 if [ -z "$ROOT" ] ; then
@@ -86,26 +58,35 @@ if [ -z "$ROOT" ] ; then
     exit 1
 else
     ROOT=`echo $ROOT | cut -f 1 -d ' '`
+    KERNELSHORT=`echo $KERNELVER | cut -c 1-8`
+    if [ "$KERNELVER" != "$KERNELSHORT" ] ; then
+        echo "Shortened $KERNELVER for Linux-$KERNELSHORT+ to fit into 15 characters long LILO label"
+    else
+        echo "Linux-$KERNELSHORT+ fits OK into 15 characters long LILO label"
+    fi
 (
 cat <<EOF
 # Linux bootable partition config begins
 image = /boot/vmlinuz-KERNELVER
   root = ROOT
-  label = Linux-KERNELVER+
+  label = Linux-KERNELSHORT+
   read-only  # Partitions should be mounted read-only for checking
-  initrd = /boot/initrd-KERNELVER-nvidia.img
-  append = " module_blacklist=nouveau nvidia.modeset=1"
+  initrd = /boot/initrd-KERNELVER.img
+  append = " module_blacklist=nouveau nvidia_drm.modeset=1"
 # Linux bootable partition config ends
 # Linux bootable partition config begins
 image = /boot/vmlinuz-KERNELVER
   root = ROOT
-  label = Linux-KERNELVER-
+  label = Linux-KERNELSHORT-
   read-only  # Partitions should be mounted read-only for checking
   initrd = /boot/initrd-KERNELVER.img
   append = " module_blacklist=nvidia,nvidia_drm,nvidia_uvm,nvidia_modeset"
 # Linux bootable partition config ends
 EOF
 ) | sed "s|KERNELVER|$KERNELVER|" \
+  | sed "s|KERNELSHORT|$KERNELSHORT|" \
   | sed "s|ROOT|$ROOT|" > /etc/lilo.conf.nvidia-$KERNELVER
-fi
 
+    echo "/etc/lilo.conf.nvidia-$KERNELVER snippet created"
+
+fi

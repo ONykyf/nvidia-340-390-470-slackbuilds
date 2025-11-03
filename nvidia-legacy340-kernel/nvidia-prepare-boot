@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# Copyright 2025 Oleh Nykyforchyn, Ivano-Frankivsk, Ukraine
+
+if egrep '^[^[:blank:]]*blacklist[^[:blank:]][^[:blank:]]*nouveau[^[:blank:]]*$' \
+        /etc/modprobe.d/* > /dev/null ; then
+    echo "It seems that nouveau is blacklisted somewhere in /etc/modprobe.d/, remove this!"
+fi
+
+if [ -z "$KERNELVER" ] ; then
+  KERNELVER=`uname -r`
+fi
+
+if [ ! -r /boot/vmlinuz-$KERNELVER ] ; then
+    echo "There is no vmlinuz-$KERNELVER kernel, cannot proceed!"
+    exit 1
+fi
+
+if [ ! -x /usr/sbin/geninitrd ] ; then
+    echo "There is no geninitrd executable, cannot proceed!"
+    exit 1
+fi
+
+if [ -z "$TMPINITRD" ] ; then
+  TMPINITRD=/tmp/initrdnew
+fi
+
+rm -rf $TMPINITRD
+mkdir -p $TMPINITRD
+
+KERNEL=/boot/vmlinuz-$KERNELVER geninitrd
+
+cd $TMPINITRD
+
+zcat /boot/initrd-$KERNELVER.img | cpio -i -d
+
+echo "Removing nvidia and nouveau kernel modules from /boot/initrd-$KERNELVER.img"
+
+rm -rf $TMPINITRD/lib/modules/$KERNELVER/kernel/drivers/gpu/drm/nouveau
+rm -f $TMPINITRD/lib/modules/$KERNELVER/kernel/drivers/video/{nvidia,nvidia-uvm}.ko \
+    $TMPINITRD/lib/modules/$KERNELVER/kernel/drivers/video/
+egrep -v 'nvidia|nouveau' $TMPINITRD/load_kernel_modules \
+    > $TMPINITRD/load_kernel_modules.new
+mv -f $TMPINITRD/load_kernel_modules.new $TMPINITRD/load_kernel_modules
+chmod +x $TMPINITRD/load_kernel_modules
+depmod -b $TMPINITRD $KERNELVER
+
+find . | cpio -o -H newc | gzip -9 >  /boot/initrd-$KERNELVER-nvidia.img
+
+echo "Repacked /boot/initrd-$KERNELVER.img"
+
+cd ..
+rm -rf $TMPINITRD
+
+ROOT=`cat /etc/mtab | egrep '^[^[:blank:]]* / '`
+if [ -z "$ROOT" ] ; then
+    echo "There is no line for root fs in /etc/mtab, cannot proceed!"
+    exit 1
+else
+    ROOT=`echo $ROOT | cut -f 1 -d ' '`
+    KERNELSHORT=`echo $KERNELVER | cut -c 1-8`
+    if [ "$KERNELVER" != "$KERNELSHORT" ] ; then
+        echo "Shortened $KERNELVER for Linux-$KERNELSHORT+ to fit into 15 characters long LILO label"
+    else
+        echo "Linux-$KERNELSHORT+ fits OK into 15 characters long LILO label"
+    fi
+(
+cat <<EOF
+# Linux bootable partition config begins
+image = /boot/vmlinuz-KERNELVER
+  root = ROOT
+  label = Linux-KERNELSHORT+
+  read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-KERNELVER.img
+  append = " module_blacklist=nouveau"
+# Linux bootable partition config ends
+# Linux bootable partition config begins
+image = /boot/vmlinuz-KERNELVER
+  root = ROOT
+  label = Linux-KERNELSHORT-
+  read-only  # Partitions should be mounted read-only for checking
+  initrd = /boot/initrd-KERNELVER.img
+  append = " module_blacklist=nvidia,nvidia_uvm"
+# Linux bootable partition config ends
+EOF
+) | sed "s|KERNELVER|$KERNELVER|" \
+  | sed "s|KERNELSHORT|$KERNELSHORT|" \
+  | sed "s|ROOT|$ROOT|" > /etc/lilo.conf.nvidia-$KERNELVER
+
+    echo "/etc/lilo.conf.nvidia-$KERNELVER snippet created"
+
+fi

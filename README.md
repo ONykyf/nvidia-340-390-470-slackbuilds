@@ -39,11 +39,11 @@ Just run `nvidia-legacy${VERSION}-kernel.SlackBuild` and `nvidia-legacy${VERSION
 
 Observe that `*.run` installers from NVidia are one level up in the directory hierarchy to save space. Files for 340 and 390 are included, but the installer for 470 is not because of its size (266455 Kb). The script `get_NVIDIA-Linux-x86_64-470.256.02.run.sh` will download it for you.
 
-The created packages and build logs are put alongside the build scripts (not in `/tmp` or wherever). You can move them to another place to keep the cloned repository intact and not to lose the build packages in case of a repository update.
+The created packages and build logs are put alongside the build scripts (not in `/tmp` or wherever). You can move them to another place to keep the cloned repository intact and not to lose the built packages in case of a repository update.
 
 Note that `nvidia-legacy${VERSION}-driver` is common, but `nvidia-legacy${VERSION}-kernel` should be built and installed separately for all kernels you use (boot each kernel and re-run the build script).
 
-After the installation you will get `/boot/initrd-${KERNEL}.img` initramfs image cleared of `nouveau`, `nvidia`, `nvidia-drm`, `nvidia-uvm` and `nvidia-modeset` kernel modules, which ensures that they will not be loaded at early boot. To simplify this, an `/etc/lilo.conf.nvidia-${KERNEL}` snippet is generated simultaneously, which looks like this:
+After the installation you will get `/boot/initrd-${KERNEL}.img` initramfs image cleared of `nouveau`, `nvidia`, `nvidia-drm`, `nvidia-uvm` and `nvidia-modeset` kernel modules, which ensures that they will not be loaded at early boot. To simplify its use, an `/etc/lilo.conf.nvidia-${KERNEL}` snippet is generated simultaneously, which looks like this:
 ```
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.12.6
@@ -51,7 +51,7 @@ image = /boot/vmlinuz-6.12.6
   label = Linux-6.12.6+
   read-only  # Partitions should be mounted read-only for checking
   initrd = /boot/initrd-6.12.6.img
-  append = " module_blacklist=nouveau nvidia.modeset=1"
+  append = " module_blacklist=nouveau nvidia_drm.modeset=1"
 # Linux bootable partition config ends
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.12.6

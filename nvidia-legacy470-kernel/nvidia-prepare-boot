@@ -91,7 +91,7 @@ cat <<EOF
 # Linux bootable partition config begins
 image = /boot/vmlinuz-KERNELVER
   root = ROOT
-  label = Linux-KERNELVER-nvi
+  label = Linux-KERNELVER+
   read-only  # Partitions should be mounted read-only for checking
   initrd = /boot/initrd-KERNELVER-nvidia.img
   append = " module_blacklist=nouveau nvidia.modeset=1"
@@ -99,7 +99,7 @@ image = /boot/vmlinuz-KERNELVER
 # Linux bootable partition config begins
 image = /boot/vmlinuz-KERNELVER
   root = ROOT
-  label = Linux-KERNELVER-nou
+  label = Linux-KERNELVER-
   read-only  # Partitions should be mounted read-only for checking
   initrd = /boot/initrd-KERNELVER.img
   append = " module_blacklist=nvidia,nvidia_drm,nvidia_uvm,nvidia_modeset"

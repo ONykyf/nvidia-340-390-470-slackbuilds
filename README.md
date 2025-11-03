@@ -48,7 +48,7 @@ After the installation for 390 and 470 versions (but not for 340) you will get `
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.12.6
   root = /dev/sda9
-  label = Linux-6.12.6-nvi
+  label = Linux-6.12.6+
   read-only  # Partitions should be mounted read-only for checking
   initrd = /boot/initrd-6.12.6-nvidia.img
   append = " module_blacklist=nouveau nvidia.modeset=1"
@@ -56,21 +56,21 @@ image = /boot/vmlinuz-6.12.6
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.12.6
   root = /dev/sda9
-  label = Linux-6.12.6-nou
+  label = Linux-6.12.6-
   read-only  # Partitions should be mounted read-only for checking
   initrd = /boot/initrd-6.12.6.img
   append = " module_blacklist=nvidia,nvidia_drm,nvidia_uvm,nvidia_modeset"
 # Linux bootable partition config ends
 ```
 
-Note that `geninitrd` by default clears `/boot/initrd-${KERNEL}-nvidia.img` as "orphaned", e.g., when a new kernel is installed. Then running `nvidia-prepare-boot` (and `lilo`, if used) restores the correct initrd images and points the booloader to their locations.
+Note that `geninitrd` by default clears `/boot/initrd-${KERNEL}-nvidia.img` as "orphaned", e.g., when a new kernel is installed. Then running `nvidia-prepare-boot` (and `lilo`, if used) restores the correct initrd images and points the bootloader to their locations.
 
 For nvidia340 a special initrd image is not necessary, and `/etc/lilo.conf.nvidia-${KERNEL}` looks simpler:
 ```
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.17.6
   root = /dev/sda3
-  label = Linux-6.17.6-nvi
+  label = Linux-6.17.6+
   read-only  # Partitions should be mounted read-only for checking
   initrd = /boot/initrd-6.17.6.img
   append = " module_blacklist=nouveau"
@@ -78,7 +78,7 @@ image = /boot/vmlinuz-6.17.6
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.17.6
   root = /dev/sda3
-  label = Linux-6.17.6-nou
+  label = Linux-6.17.6-
   read-only  # Partitions should be mounted read-only for checking
   initrd = /boot/initrd-6.17.6.img
   append = " module_blacklist=nvidia,nvidia_uvm"

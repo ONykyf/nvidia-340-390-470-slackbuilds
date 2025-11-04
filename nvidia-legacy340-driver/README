@@ -36,25 +36,25 @@ by blacklisting unneeded modules. The package installs a script
 /etc/rc.d/rc.nvidia340 that changes soft links to libGL, libEGL,
 libGLESv1_CM, and libGLESv2 between NVidia and system-wide libraries
 depending on whether nvidia-drm driver has been loaded at startup.
-Addititionally, an /usr/sbin/nvidia340-prepare-boot script is provided
-by the nvidia-kernel package and run right at its installation, although you
-can run it any time as root. It creates an /etc/lilo.conf.nvidia-${KERNEL}
-snippet that looks like this:
+The nvidia-kernel package installs /usr/sbin/nvidia-prepare-boot script
+and runs it right at installation, although you can run it any time as root
+to regenerate /boot/initrd-${KERNEL}.img (without nouveau and nvidia kernel modules).
+Additionally, it creates an /etc/lilo.conf.nvidia-${KERNEL} snippet that looks like this:
 
 # Linux bootable partition config begins
-image = /boot/vmlinuz-6.12.6
+image = /boot/vmlinuz-6.17.6
   root = /dev/sda9
-  label = Linux-6.12.6-nvi
+  label = Linux-6.17.6+
   read-only  # Partitions should be mounted read-only for checking
-  initrd = /boot/initrd-6.12.6.img
+  initrd = /boot/initrd-6.17.6.img
   append = " module_blacklist=nouveau"
 # Linux bootable partition config ends
 # Linux bootable partition config begins
-image = /boot/vmlinuz-6.12.6
+image = /boot/vmlinuz-6.17.6
   root = /dev/sda9
-  label = Linux-6.12.6-nou
+  label = Linux-6.17.6-
   read-only  # Partitions should be mounted read-only for checking
-  initrd = /boot/initrd-6.12.6.img
+  initrd = /boot/initrd-6.17.6.img
   append = " module_blacklist=nvidia,nvidia_uvm"
 # Linux bootable partition config ends
 

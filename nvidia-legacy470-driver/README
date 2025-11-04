@@ -40,17 +40,16 @@ Moreover, you can choose nvidia or nouveau kernel/X drivers at boot time
 by blacklisting unneeded modules and loading an initrd image with necesssary
 ones. The nvidia-kernel package installs /usr/sbin/nvidia-prepare-boot script
 and runs it right at installation, although you can run it any time as root
-to regenerate /boot/initrd-${KERNEL}.img (with a nouveau kernel module) and
-/boot/initrd-${KERNEL}-nvidia.img (with nvidia kernel modules). Additionally,
-it creates an /etc/lilo.conf.nvidia-${KERNEL} snippet that looks like this:
+to regenerate /boot/initrd-${KERNEL}.img (without nouveau and nvidia kernel modules).
+Additionally, it creates an /etc/lilo.conf.nvidia-${KERNEL} snippet that looks like this:
 
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.12.6
   root = /dev/sda9
   label = Linux-6.12.6-nvi
   read-only  # Partitions should be mounted read-only for checking
-  initrd = /boot/initrd-6.12.6-nvidia.img
-  append = " module_blacklist=nouveau nvidia.modeset=1"
+  initrd = /boot/initrd-6.12.6.img
+  append = " module_blacklist=nouveau nvidia_drm.modeset=1"
 # Linux bootable partition config ends
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.12.6
@@ -60,11 +59,5 @@ image = /boot/vmlinuz-6.12.6
   initrd = /boot/initrd-6.12.6.img
   append = " module_blacklist=nvidia,nvidia_drm,nvidia_uvm,nvidia_modeset"
 # Linux bootable partition config ends
-
-You can add it (edited if you like) to /etc/lilo.conf to choose at boot
-which drivers to use. This adds an additional safety margin in case
-something goes wrong after an upgrade or an experiment. If you use, say,
-GRUB2 instead of LILO, you can take kernel options from here to use
-in grub.cfg.
 
 Tested with linux kernels up to 6.17.6.

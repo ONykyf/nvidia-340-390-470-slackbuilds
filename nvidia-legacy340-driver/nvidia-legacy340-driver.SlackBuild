@@ -201,6 +201,7 @@ patchelf --add-needed libpthread.so.0  tls/libnvidia-tls.so.$VERSION
 patchelf --add-needed libpthread.so.0  libOpenCL.so.1.0.0
 cp -f tls/libnvidia-tls.so.$VERSION .
 if [ -d $PKG/usr/lib${LIBDIRSUFFIX}/nvidia ] ; then
+    mv libGL.la nvidia/
     mv libGL.so.$VERSION nvidia/
     ln -sf nvidia/libGL.so.$VERSION libGL.so.1
     mv libEGL.so.$VERSION nvidia/
@@ -221,6 +222,7 @@ if [ "$COMPAT32" = "yes" ] ; then
     patchelf --add-needed /usr/lib/libpthread.so.0  libOpenCL.so.1.0.0
     cp -f tls/libnvidia-tls.so.$VERSION .
     if [ -d $PKG/usr/lib/nvidia ] ; then
+        mv libGL.la nvidia/
         mv libGL.so.$VERSION nvidia/
         ln -sf nvidia/libGL.so.$VERSION libGL.so.1
         mv libEGL.so.$VERSION nvidia/

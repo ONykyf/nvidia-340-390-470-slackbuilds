@@ -46,7 +46,7 @@ Additionally, it creates an /etc/lilo.conf.nvidia-${KERNEL} snippet that looks l
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.12.6
   root = /dev/sda9
-  label = Linux-6.12.6-nvi
+  label = Linux-6.12.6+
   read-only  # Partitions should be mounted read-only for checking
   initrd = /boot/initrd-6.12.6.img
   append = " module_blacklist=nouveau nvidia_drm.modeset=1"
@@ -54,7 +54,7 @@ image = /boot/vmlinuz-6.12.6
 # Linux bootable partition config begins
 image = /boot/vmlinuz-6.12.6
   root = /dev/sda9
-  label = Linux-6.12.6-nou
+  label = Linux-6.12.6-
   read-only  # Partitions should be mounted read-only for checking
   initrd = /boot/initrd-6.12.6.img
   append = " module_blacklist=nvidia,nvidia_drm,nvidia_uvm,nvidia_modeset"

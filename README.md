@@ -121,7 +121,7 @@ The nvidia 340 driver is not GLVND capable and its installer tries to replace so
 Hence the legacy libraries are moved to `/usr/{lib,lib64}/nvidia`, and the package installs a script `/etc/rc.d/rc.nvidia340` that changes soft links to `libGL`, `libEGL`, `libGLESv1_CM`,
 `libGLESv2`, and `libOpenCL` between NVidia and system-wide libraries depending on whether `nvidia.ko` kernel module has been loaded at startup. If `ldconfig` without arguments is run, e.g., from an installation script, then the soft links are "corrected", and you temporarily lose OpenGL for `nvidia`. Then reboot a computer or run `/etc/rc.d/rc.nvidia340` as root.
 
-These limitations also make Tesla cards with the nvidia 340 driver an inappropriate choice for multiseat together with non-NVidia cards, but such use can hardly be imagined for this legacy hardware (and I'd suppose that it has never been used this way). For a single seat (with one or more monitors) nvidia 340 works well enough. 
+These limitations also make Tesla cards with the nvidia 340 driver an inappropriate choice for multiseat together with non-NVidia cards, but such use can hardly be imagined for this legacy hardware (and I'd suppose that it has never been used this way). For a single seat (with one or two monitors) nvidia 340 works well enough. 
 
 This driver provides OpenGL ES 2.0 only, which is insufficient for GTK4. Use a workaround like
 ```

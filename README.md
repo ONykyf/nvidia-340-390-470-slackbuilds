@@ -6,7 +6,9 @@ SlackBuilds with the necessary sources to build legacy NVidia drivers (kernel mo
 
 - To allow a user to install NVidia drivers on systems with recent Linux kernels (tested up to 6.17.6) so that they "just work", with little to no manual intervention;
 
-- To install proprietary modules and libraries in a dedicated directory `/usr/{lib,lib64}/nvidia` so that they do not overwrite open versions from XLibre, Mesa, libglvnd etc;
+- To make NVidia packages safe in the sense that if NVidia card is absent or disabled, then the legacy drivers' presence does not affect the system;
+
+- In particular, to install proprietary modules and libraries in a dedicated directory `/usr/{lib,lib64}/nvidia` so that they do not overwrite open versions from XLibre, Mesa, libglvnd etc;
 
 - To keep `nouveau` kernel and X drivers so that a user is able to choose between them and `nvidia` at boot time, which increases safety (it's almost impossible for both open and proprietary drivers to break simultaneously).
 

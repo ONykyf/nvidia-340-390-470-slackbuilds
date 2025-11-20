@@ -12,6 +12,17 @@ SlackBuilds with the necessary sources to build legacy NVidia drivers (kernel mo
 
 - To keep `nouveau` kernel and X drivers so that a user is able to choose between them and `nvidia` at boot time, which increases safety (it's almost impossible for both open and proprietary drivers to break simultaneously).
 
+## The result
+
+A screenshot of NVidia v.340 driver working on a legacy GeForce 210 card is below: 
+
+<img width="1920" height="1080" alt="nvidia340" src="https://github.com/user-attachments/assets/9bff6c59-51de-442e-973d-eb3e733aa4a5" />
+
+And Nouveau on the same computer, if chosen at boot time:
+
+<img width="1920" height="1080" alt="nouveau" src="https://github.com/user-attachments/assets/ae1e19cf-503f-49d3-9fa3-b9c8ee7d9573" />
+
+
 ## Source
 
 Build scripts from [slackbuilds.org](https://slackbuilds.org/result/?search=nvidia-legacy&sv=15.0) have been modified, so credits go to Heinz Wiesinger, Edward W. Koenig, and Lenard Spencer who are the authors of the original scripts.

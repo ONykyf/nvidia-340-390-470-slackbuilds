@@ -12,7 +12,7 @@ SlackBuilds with the necessary sources to build legacy NVidia drivers (kernel mo
 
 - To keep `nouveau` kernel and X drivers so that a user is able to choose between them and `nvidia` at boot time, which increases safety (it's almost impossible for both open and proprietary drivers to break simultaneously).
 
-## The result
+## Result
 
 A screenshot of NVidia v.340 driver working on a legacy GeForce 210 card is below: 
 
